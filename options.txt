@@ -7,8 +7,8 @@
 #--suffixes iis
 --inputs-dir inputs_tiny
 --outputs-dir outputs
-#--dr-demand-module switch_hawaii.constant_elasticity_demand_system
---dr-demand-module switch_hawaii.r_demand_system
+#--dr-demand-module hawaii.constant_elasticity_demand_system
+--dr-demand-module switch_mod.hawaii.r_demand_system
 --dr-r-script nestedcespy.R
 --dr-elasticity-scenario 3
 --scenario-name test

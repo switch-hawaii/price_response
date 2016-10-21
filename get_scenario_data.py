@@ -3,8 +3,25 @@
 import sys, os
 from textwrap import dedent
 
-import switch_hawaii.scenario_data as scenario_data
-import switch_hawaii.scenarios as scenarios
+import switch_mod.hawaii.scenario_data as scenario_data
+import switch_mod.hawaii.scenarios as scenarios
+
+tech_clusters = [["2045_fossil", "2045_rps"]]
+elasticity_scenarios = [4]  # [4, 3, 2, 1]
+marginal_options = ["marginal"]   # +["total"]
+# note: we've abandoned total-cost pricing because it's theoretically messy.
+# If a fixed lump has to be spread across all days of the year, then the
+# retail price (and demand bid) on each day will change depending on quantities
+# sold on other days of that year. Adding a fixed amount to the marginal cost
+# or multiplying it by a fixed scalar would be much more tractable, but their
+# effect would have to be backed out before reporting WTP to the supply side
+# (otherwise it will think that it's worth doing a change that costs $1 and 
+# results in $1 of welfare improvement, but due to the adder or multiplier,
+# the apparent demand curve will be rotated or scaled, and we won't get the full
+# $1 of welfare improvement.) Fixed adjustments may be theoretically interesting
+# (to investigate the effect of "taxes" to recover stranded costs), but they 
+# don't really address a question we're interested in right now, certainly not
+# in a simple way.
 
 ###########################
 # Scenario Definitions
@@ -15,22 +32,9 @@ import switch_hawaii.scenarios as scenarios
 # (--scenario does this already)
 
 scenario_list = []
-for marginal in ["marginal"]:   # not +["total"]
-    # note: we've abandoned total-cost pricing because it's theoretically messy.
-    # If a fixed lump has to be spread across all days of the year, then the
-    # retail price (and demand bid) on each day will change depending on quantities
-    # sold on other days of that year. Adding a fixed amount to the marginal cost
-    # or multiplying it by a fixed scalar would be much more tractable, but their
-    # effect would have to be backed out before reporting WTP to the supply side
-    # (otherwise it will think that it's worth doing a change that costs $1 and 
-    # results in $1 of welfare improvement, but due to the adder or multiplier,
-    # the apparent demand curve will be rotated or scaled, and we won't get the full
-    # $1 of welfare improvement.) Fixed adjustments may be theoretically interesting
-    # (to investigate the effect of "taxes" to recover stranded costs), but they 
-    # don't really address a question we're interested in right now, certainly not
-    # in a simple way.
-    for tech_cluster in [["2045_fossil", "2045_rps"], ["2007", "2045_rps_ev"]]:
-        for elasticity_scen in [3, 2, 1]:
+for marginal in marginal_options:
+    for tech_cluster in tech_clusters:
+        for elasticity_scen in elasticity_scenarios:
             for tech in tech_cluster:
                 for flat in ["flat", "dynamic"]:
                     # print flat, marginal, elasticity_scen, tech
