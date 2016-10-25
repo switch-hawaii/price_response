@@ -36,7 +36,8 @@ theta <- c(0.1)
 #select which scenario
 #share (highly shiftable, slighly shiftable, no shiftable)
 sigmap <<- c(10, 1.000001, 0.1)
-setwd("~/Dropbox/demand_system")
+# the next line is not needed and doesn't work on computers with different directory structures
+#setwd("~/Dropbox/demand_system")
 #setwd("D:/Dropbox/demand_system")
 
 flexshares <- read.csv(file="flexshares.csv", header=TRUE, sep=",")
@@ -153,7 +154,12 @@ calibrate <- function(base.loads, base.prices) {
 }
 
 bid <- function(location, timeseries, prices, scenario) {
-  month <- as.numeric(substr(timeseries, 5, 6))
+  # we don't have a good way to know the month, but this works for inputs_tiny and inputs_2045_15
+  if (nchar(timeseries) == 4) {   # tiny dataset
+    month <- as.numeric(substr(timeseries, 3, 4))
+  } else {                      # normal dataset
+    month <- as.numeric(substr(timeseries, 5, 6))    
+  }
   # force strictly positive prices
   #prices[prices < 15] <- 15
   #prices <- prices + 10
