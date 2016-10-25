@@ -20,7 +20,7 @@ alpha <- c(0.9718)
 # (opposite of what's shown here)
 # 1. elasticity of subtitution for electricity between hours
 # source: http://robjhyndman.com/papers/Elasticity2010.pdf page 8 for own-price elasticity
-sigma <- c(0.1)  #  allow for any vector
+# sigma <- c(0.1)  #  allow for any vector
 # 2. elasticity of subtitution between electricity and other goods
 theta <- c(0.1)
 # 3. customer shares of in aggregate demand
@@ -31,142 +31,61 @@ theta <- c(0.1)
 # X = electricity demand
 
 ####################################################
-#simple demand
-demandf1 <- function(beta, pd, pb, Mb) {
-  p <- pd/pb
-  exp1 <- (1-theta)/(1-sigma)
-  exp2 <- (sigma-theta)/(1-sigma)
-  exp3 <- sum(beta*(p^(1-sigma)))
-  e <- ((alpha+(1-alpha)*(exp3^(exp1)))^(-1))
-  x <- Mb * e *((1-alpha)*(exp3)^exp2)*beta*(p^(-1*sigma))
-  print(e)
-  print((exp3^(exp1))^(-1))
-  return(x)
-}
+#demand with different scenario
 
-demandf <- function(beta, pd, pb, Mb) {
+#select which scenario
+#share (highly shiftable, slighly shiftable, no shiftable)
+sigmap <<- c(10, 1.000001, 0.1)
+setwd("~/Dropbox/demand_system")
+#setwd("D:/Dropbox/demand_system")
+
+flexshares <- read.csv(file="flexshares.csv", header=TRUE, sep=",")
+param <- matrix(seq(1,72),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
+set.scenario <- function(scen, month) {
+  ifelse(scen==1, {#optimistic
+    shareflex <<- c(0.75, 0.05, 0.2)
+    shareother <<- c(0.25, 0.05, 0.7)
+    paramf <<- matrix(c(rep(scen,72),rep(flexshares[,month],3),rep(shareflex[[1]],24), rep(shareflex[[2]],24), rep(shareflex[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
+    paramot <<- matrix(c(rep(scen,72),rep(1-flexshares[,month],3),rep(shareother[[1]],24), rep(shareother[[2]],24), rep(shareother[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))},
+    ifelse(scen==2, 
+{#2nd scenario=baseline
+  shareflex <<- c(0.5, 0.05, 0.45)
+  shareother <<- c(0.1, 0.05, 0.85)
+  paramf <<- matrix(c(rep(scen,72),rep(flexshares[,month],3),rep(shareflex[[1]],24), rep(shareflex[[2]],24), rep(shareflex[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
+  paramot <<- matrix(c(rep(scen,72),rep(1-flexshares[,month],3),rep(shareother[[1]],24), rep(shareother[[2]],24), rep(shareother[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))},
+ifelse(scen==3,
+{#3rd scenario=pessimistic
+  shareflex <<- c(0.25, 0.05, 0.7)
+  shareother <<- c(0, 0.05, 0.95)
+  paramf <<- matrix(c(rep(scen,72),rep(flexshares[,month],3),rep(shareflex[[1]],24), rep(shareflex[[2]],24), rep(shareflex[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
+  paramot <<- matrix(c(rep(scen,72),rep(1-flexshares[,month],3),rep(shareother[[1]],24), rep(shareother[[2]],24), rep(shareother[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
+})))
+}
+#set.scenario(2,2)
+
+####################################################
+
+demandf <- function(beta, pd, pb, Mb, month, scen) {
   x1 <- 0
   p <- pd/pb
-  for (i in (1:nrow(param))) {
-    Mbs <- Mb*param[i,c("type")]*param[i,c("share")]
-    sigma <- param[i,c("sigma")]
+  set.scenario(scen,month)
+  for (i in (1:3)) {
+    ifelse (i==1, startrow <- 1, startrow<- ((i-1)*24)+1)
+    sigmarow <- i*24
+    Mbsf <- paramf[startrow:sigmarow,c("type")]*paramf[startrow:sigmarow,c("share")]*Mb
+    Mbsot <- paramot[startrow:sigmarow,c("type")]*paramot[startrow:sigmarow,c("share")]*Mb
+    sigma <- paramf[sigmarow,c("sigma")]
     exp1 <- (1-theta)/(1-sigma)
     exp2 <- (sigma-theta)/(1-sigma)
     exp3 <- sum(beta*(p^(1-sigma)))
     e <- ((alpha+(1-alpha)*(exp3^(exp1)))^(-1))
-    x <- Mbs * e *((1-alpha)*(exp3)^exp2)*beta*(p^(-1*sigma))
+    x <- (Mbsf * e *((1-alpha)*(exp3)^exp2)*beta*(p^(-1*sigma)))+(Mbsot * e *((1-alpha)*(exp3)^exp2)*beta*(p^(-1*sigma)))
     x1 <- x +x1
   }
   return(x1)
 }
-
-####################################################
-#demand with different scenario
-sigmap <<- c(10, 1.000001, 0.1)
-customershare <<- c(0.25, 0.75)
-param <- matrix(seq(1,24),6,4, dimnames=list(seq(1,6),c("scen","type","share","sigma")))
-set.scenario <- function(scen) {
-   ifelse(scen==1, {#1st scenario
-                    shareres <<- c(0.25, 0.31, 0.44)
-                    sharebus <<- c(0.3, 0.2, 0.5)
-                    param <<- matrix(c(rep(scen,6),rep(customershare[[1]],3),rep(customershare[[2]],3),shareres, sharebus, sigmap, sigmap),6,4, dimnames=list(seq(1,6),c("scen","type","share","sigma")))},
-          ifelse(scen==2, 
-                    {#2nd scenario
-                    shareres <<- c(0.175, 0.341, 0.484)
-                    sharebus <<- c(0.225, 0.22, 0.555)
-                    param <<- matrix(c(rep(scen,6),rep(customershare[[1]],3),rep(customershare[[2]],3),shareres, sharebus, sigmap, sigmap),6,4, dimnames=list(seq(1,6),c("scen","type","share","sigma")))},
-          ifelse(scen==4, 
-                    {#4nd scenario
-                      shareres <<- c(0.025, 0.403, 0.572)
-                      sharebus <<- c(0.075, 0.263, 0.662)
-                      param <<- matrix(c(rep(scen,6),rep(customershare[[1]],3),rep(customershare[[2]],3),shareres, sharebus, sigmap, sigmap),6,4, dimnames=list(seq(1,6),c("scen","type","share","sigma")))},
-          ifelse(scen==3,
-                    {#3rd scenario
-                    shareres <<- c(0.10, 0.372, 0.528)
-                    sharebus <<- c(0.15, 0.24, 0.61)
-                    param <<- matrix(c(rep(scen,6),rep(customershare[[1]],3),rep(customershare[[2]],3),shareres, sharebus, sigmap, sigmap),6,4, dimnames=list(seq(1,6),c("scen","type","share","sigma")))
-                    }))))
-}
-
-#select which scenario
-#set.scenario <- function(scen) {
-# demand with some plausible shiftable shares derived from data available
-# share of residential and business from EIA826 2015
-#1) residential #2) business (combined industrial and commercial)
-#  customershare <<- c(0.25, 0.75)
-
-#share (highly shiftable, slighly shiftable, no shiftable)
-#https://www.hawaiianelectric.com/Documents/save_energy_and_money/Energy-Tips-and-Choices.pdf 
-#page 76
-#lets use CA as proxy for now https://www.eia.gov/consumption/residential/reports/2009/state_briefs/pdf/ca.pdf
-#  shareres <<- c(0.25, 0.31, 0.44)
-#https://hawaiienergy.com/for-businesses/business-solutions/
-#rough measure
-#  sharebus <<- c(0.3, 0.2, 0.5)
-
-#elasticity params 
-#  sigmap <<- c(10, 1, 0.1)
-#}
-set.scenario(4)
-
-demandf2 <- function(beta, pd, pb, Mb) {
-  p <- pd/pb
-  exp1a <- (1-theta)/(1-sigma1)
-  exp1b <- (sigma1-theta)/(1-sigma1) 
-  exp1c <- sum(beta*(p^(1-sigma1)))
-  exp1d <- share1*((exp1c)^exp1b)*beta*(p^(-1*sigma1))
-  exp2a <- (1-theta)/(1-sigma2)
-  exp2b <- (sigma2-theta)/(1-sigma2)
-  exp2c <- sum(beta*(p^(1-sigma2)))
-  exp2d <- share2*((exp2c)^exp2b)*beta*(p^(-1*sigma2))
-  exp3a <- (1-theta)/(1-sigma3)
-  exp3b <- (sigma3-theta)/(1-sigma3)
-  exp3c <- sum(beta*(p^(1-sigma3)))
-  exp3d <- share3*((exp3c)^exp3b)*beta*(p^(-1*sigma3))
-  e <- alpha+((1-alpha)*((share1*(exp1c^exp1a))+(share2*(exp2c^exp2a))+(share3*(exp3c^exp3a))))
-  x <- Mb*((1-alpha)*(exp1d + exp2d + exp3d))
-  return(x/e)
-}
-
-####################################################
-#residential and business customers
-demandf3 <- function(beta, pd, pb, Mb) {
-  result <- NULL
-  p <- pd/pb
-  #residential
-  for (i in 1:length(sigmap)) {
-    sigma <- sigmap[i]
-    share <- shareres[i]
-    expa <- (1-theta)/(1-sigma)
-    expb <- (sigma-theta)/(1-sigma)
-    expc <- sum(beta*(p^(1-sigma)))
-    expd <- share*((expc)^expb)*beta*(p^(-1*sigma))  
-    #expd[is.nan(expd) | expd >3000/share]<- share*3000
-    expe <- share*(expc^expa)
-    if( sigma==sigmap[1] & share==shareres[1]) result <- matrix(c(share, sigma, expe, expd), nrow=1)
-    else result <- rbind( result, matrix(c(share, sigma, expe, expd), nrow=1) )
-  }
-  eres <- alpha+(1-alpha)*sum(result[,3])
-  xres <- (Mb*((1-alpha)*(colSums(result[,4:ncol(result)]))))/eres
-  #business
-  result <- NULL
-  for (i in 1:length(sigmap)) {
-    sigma <- sigmap[i]
-    share <- sharebus[i]
-    expa <- (1-theta)/(1-sigma)
-    expb <- (sigma-theta)/(1-sigma)
-    expc <- sum(beta*(p^(1-sigma)))
-    expd <- share*((expc)^expb)*beta*(p^(-1*sigma))
-    #expd[is.nan(expd) | expd >3000/share]<- share*3000
-    expe <- share*(expc^expa)
-    if( sigma==sigmap[1] & share==sharebus[1]) result <- matrix(c(share, sigma, expe, expd), nrow=1)
-    else result <- rbind( result, matrix(c(share, sigma, expe, expd), nrow=1) )
-  }
-  ebus <- alpha+((1-alpha)*sum(result[,3]))
-  xbus <- (Mb*((1-alpha)*(colSums(result[,4:ncol(result)]))))/ebus
-  totalx <- (customershare[1]*xres) + (customershare[2]*xbus)
-  return(totalx)
-}
+#test
+#sum((demandf(betas, base.p, base.p, M,1,5)/base.p)-base.l) #shoould be 0
 
 ####################################################
 betaf <- function(base.load) {
@@ -175,112 +94,45 @@ betaf <- function(base.load) {
 }
 
 # unit expenditure function
-expf1 <- function(beta, pd, pb) {
-  p <- pd/pb
-  exp1 <- (1-theta)/(1-sigma)
-  exp2 <- 1/(1-theta)
-  exp3 <- sum(beta*(p^(1-sigma)))
-  e <- (alpha+(1-alpha)*(exp3^(exp1)))^exp2
-  return(e)
-}
-
-expf <- function(beta, pd, pb) {
+expf <- function(beta, pd, pb, month, scen) {
   e1 <- 0
   p <- pd/pb
-  for (i in (1:nrow(param))) {
-    sigma <- param[i,c("sigma")]
+  set.scenario(scen,month)
+  for (i in (1:3)) {
+    ifelse (i==1, startrow <- 1, startrow<- ((i-1)*24)+1)
+    sigmarow <- i*24
+    sigma <- paramf[sigmarow,c("sigma")]
     exp1 <- (1-theta)/(1-sigma)
     exp2 <- 1/(1-theta)
     exp3 <- sum(beta*(p^(1-sigma)))
-    e <- param[i,c("type")]*param[i,c("share")]*((alpha+(1-alpha)*(exp3^(exp1)))^exp2)
+    e <- (paramf[startrow:sigmarow,c("type")]*paramf[startrow:sigmarow,c("share")]*((alpha+(1-alpha)*(exp3^(exp1)))^exp2))+(paramot[startrow:sigmarow,c("type")]*paramot[startrow:sigmarow,c("share")]*((alpha+(1-alpha)*(exp3^(exp1)))^exp2))
     e1 <- e + e1
   }
   return(e1)
 }
 
-expf2 <- function(beta, pd, pb) {
-  p <- pd/pb
-  exp1a <- (1-theta)/(1-sigma1)
-  exp1b <- (sigma1-theta)/(1-sigma1)
-  exp1c <- sum(beta*(p^(1-sigma1)))
-  exp1d <- ((exp1c)^exp1b)*share1*beta*(p^(-1*sigma1))
-  
-  exp2a <- (1-theta)/(1-sigma2)
-  exp2b <- (sigma2-theta)/(1-sigma2)
-  exp2c <- sum(beta*(p^(1-sigma2)))
-  exp2d <- ((exp2c)^exp2b)*share2*beta*(p^(-1*sigma2))
-  
-  exp3a <- (1-theta)/(1-sigma3)
-  exp3b <- (sigma3-theta)/(1-sigma3)
-  exp3c <- sum(beta*(p^(1-sigma3)))
-  exp3d <- ((exp3c)^exp3b)*share3*beta*(p^(-1*sigma3))
-  
-  e <- alpha+(1-alpha)*((share1*(exp1c^exp1a))+(share2*(exp2c^exp2a))+(share3*(exp3c^exp3a)))
-  return(e^(1/(1-theta)))
-}
-
-expf3 <- function(beta, pd, pb) {
-  result <- NULL
-  p <- pd/pb
-  #residential
-  for (i in 1:length(sigmap)) {
-    sigma <- sigmap[i]
-    share <- shareres[i]
-    expa <- (1-theta)/(1-sigma)
-    expb <- (sigma-theta)/(1-sigma)
-    expc <- sum(beta*(p^(1-sigma)))
-    expd <- share*((expc)^expb)*beta*(p^(-1*sigma))  
-    expe <- share*(expc^expa)
-    if( sigma==sigmap[1] & share==shareres[1]) result <- matrix(c(share, sigma, expe, expd), nrow=1)
-    else result <- rbind( result, matrix(c(share, sigma, expe, expd), nrow=1) )
-  }
-  eres <- (alpha+(1-alpha)*sum(result[,3])^(1/(1-theta)))
-  #business
-  result <- NULL
-  for (i in 1:length(sigmap)) {
-    sigma <- sigmap[i]
-    share <- sharebus[i]
-    expa <- (1-theta)/(1-sigma)
-    expb <- (sigma-theta)/(1-sigma)
-    expc <- sum(beta*(p^(1-sigma)))
-    expd <- share*((expc)^expb)*beta*(p^(-1*sigma))  
-    expe <- share*(expc^expa)
-    if( sigma==sigmap[1] & share==sharebus[1]) result <- matrix(c(share, sigma, expe, expd), nrow=1)
-    else result <- rbind( result, matrix(c(share, sigma, expe, expd), nrow=1) )
-  }
-  ebus <- (alpha+((1-alpha)*sum(result[,3])))^(1/(1-theta))
-  totale <- (customershare[1]*eres) + (customershare[2]*ebus)
-  #return(totale^(1/(1-theta)))
-  return(totale)
-}
-
-indirectuf1 <- function(beta, pd, pb, xd, xb, Mb) { #b=baseline, d=newdata 
-  #Md <- sum(xd*pd)/(1-alpha)
-  #Md <- (Mb / expf(beta, pd, pb))-sum(xd*pd) #consumer surplus
-  #Md <- Mb * (1-expf(beta, pd, pb))
-  #Md <- expf(beta, pb, pd) - Mb
-  Md <- (Mb / expf(beta, pd, pb))+sum(xd*pd) #willingness to pay
-  return(Md)
-}
-
-indirectuf <- function(beta, pd, pb, xd, xb, Mb) { #b=baseline, d=newdata 
+wtpf <- function(beta, pd, pb, xd, xb, Mb, month, scen) { #b=baseline, d=newdata 
   m1 <- 0
   p <- pd/pb
-  for (i in (1:nrow(param))) {
-    sigma <- param[i,c("sigma")]
+  set.scenario(scen,month)
+  for (i in (1:3)) {
+    ifelse (i==1, startrow <- 1, startrow<- ((i-1)*24)+1)
+    sigmarow <- i*24
+    sigma <- paramf[sigmarow,c("sigma")]
     exp1 <- (1-theta)/(1-sigma)
     exp2 <- 1/(1-theta)
     exp3 <- sum(beta*(p^(1-sigma)))
     e <- ((alpha+(1-alpha)*(exp3^(exp1)))^exp2)
-    m <- (param[i,c("type")]*param[i,c("share")]*Mb)/e
+    m <- ((paramf[startrow:sigmarow,c("type")]*paramf[startrow:sigmarow,c("share")]*Mb)/e)+((paramot[startrow:sigmarow,c("type")]*paramot[startrow:sigmarow,c("share")]*Mb/e))
     m1 <- m + m1
-    #print(paste(exp1, exp2, exp3, e, m, m1))
+    #print(paste(exp1, exp2, exp3, sigma, e, m, m1))
   }
-return(m1+sum(xd*pd))
+return(mean(m1))
 }
-#indirectuf1(beta, df1$base_price, df1$base_price, df1w$FlexibleDemand, df1$base_price, Mb)-Mb
+#test
+#wtp(betas, base.p, base.p, base.l, base.l,M,1,5)-M #should be 0
 
-calibrate <- function(base.loads, base.prices, scenario) {
+calibrate <- function(base.loads, base.prices) {
   # force strictly positive prices (never really an issue with base.prices)
   #base.prices[base.prices < 1] <- 1
   #base.prices <- base.prices + 10
@@ -288,7 +140,7 @@ calibrate <- function(base.loads, base.prices, scenario) {
   # store base values for future reference
   base.loads <<- base.loads
   base.prices <<- base.prices
-  set.scenario(scenario)
+  #set.scenario(scenario, month)
   # make an empty array for the beta values
   b <<- array(numeric(length(base.loads)), dim(base.loads), dimnames=dimnames(base.loads))
   # b <<- 0.0 * base.loads
@@ -300,7 +152,8 @@ calibrate <- function(base.loads, base.prices, scenario) {
       b[,ts,lo] <<- betaf(base.loads[,ts,lo])
 }
 
-bid <- function(location, timeseries, prices) {
+bid <- function(location, timeseries, prices, scenario) {
+  month <- as.numeric(substr(timeseries, 5, 6))
   # force strictly positive prices
   #prices[prices < 15] <- 15
   #prices <- prices + 10
@@ -308,12 +161,12 @@ bid <- function(location, timeseries, prices) {
   b.loads = base.loads[,timeseries,location]
   b.prices = base.prices[,timeseries,location] 
   Mb <- sum(b.loads*b.prices)/(1-alpha)
-  demand = demandf(b[,timeseries,location], prices, b.prices, Mb)/b.prices
+  demand = demandf(b[,timeseries,location], prices, b.prices, Mb, month, scenario)/b.prices
   #demand[demand >3000] <- 3000
   #demand[is.nan(demand)] <- 3000
   #prices1 <- prices
   #prices1[prices1 < 5] <- 5
-  wtp = indirectuf(b[,timeseries,location], prices, b.prices, demand, b.loads, Mb)
+  wtp = wtpf(b[,timeseries,location], prices, b.prices, demand, b.loads, Mb, month, scenario)
   return (list(demand, wtp))
 }
 
@@ -335,8 +188,9 @@ showobject <- function(obj) {
 
 test_calib <- function () {
 	base.loads <- 1000 * array(rep(1, 5), dim=c(5,1,1), dimnames=list(c(12, 13, 14, 15, 16), c(100), c("oahu")))
-	base.prices <- 0.0*base.loads - 180
-	calibrate(base.loads, base.prices, 3)
+	base.prices <- 0.0*base.loads-180
+	print(base.prices)
+	calibrate(base.loads, base.prices)
 	print_calib()
 }
 
@@ -350,7 +204,7 @@ print_calib <- function () {
 	#print ("demand (day 1, site 1):")
 	#print (demandf(b[,1,1], base.prices[,1,1], M[1,1]))
   print ("bid(1, 1, base.prices[,1,1]):")
-  print (bid(1, 1, base.prices[,1,1]))
+  print (bid(1, 20070515, base.prices[,1,1], 2))
 }
 
 test <- function() {
@@ -374,6 +228,6 @@ test <- function() {
 	alpha <- 0.95
   
 	#test
-	print(demandf(betas, base.p, base.p, M)/base.p)
-	print(demandf(betas, base.p*-2, base.p, M)/base.p)
+	print(demandf(betas, base.p, base.p, M, 1, 1)/base.p)
+	print(demandf(betas, base.p-100, base.p, M, 1, 1)/base.p)
 }
