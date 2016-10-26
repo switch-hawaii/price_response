@@ -1,1 +1,1 @@
-hawaii.demand_response
+switch_mod.hawaii.demand_response
