@@ -4,6 +4,9 @@ scenario_queue*/
 switch_mod
 switch_hawaii
 switch
+clone1.log
+cplex.log
+parse_table_datacmds.py
 .*
 !.gitignore
 *.key
