@@ -1,12 +1,12 @@
 switch_mod 
-fuel_cost
+fuel_markets
 project.no_commit
+hawaii.fuel_markets_expansion
 switch_mod.hawaii.switch_patch
 switch_mod.hawaii.rps
-switch_mod.hawaii.emission_rules
 switch_mod.hawaii.hydrogen
-switch_mod.hawaii.batteries
+switch_mod.hawaii.batteries_fixed_calendar_life
 switch_mod.hawaii.demand_response
-#switch_mod.hawaii.constant_elasticity_demand_system
+# switch_mod.hawaii.constant_elasticity_demand_system
 switch_mod.hawaii.r_demand_system
 
