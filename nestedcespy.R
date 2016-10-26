@@ -133,7 +133,7 @@ return(mean(m1))
 #test
 #wtp(betas, base.p, base.p, base.l, base.l,M,1,5)-M #should be 0
 
-calibrate <- function(base.loads, base.prices) {
+calibrate <- function(base.loads, base.prices, scenario) {
   # force strictly positive prices (never really an issue with base.prices)
   #base.prices[base.prices < 1] <- 1
   #base.prices <- base.prices + 10
