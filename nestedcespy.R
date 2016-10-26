@@ -41,22 +41,22 @@ sigmap <<- c(10, 1.000001, 0.1)
 #setwd("D:/Dropbox/demand_system")
 
 flexshares <- read.csv(file="flexshares.csv", header=TRUE, sep=",")
-param <- matrix(seq(1,72),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
+#param <- matrix(seq(1,72),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
 set.scenario <- function(scen, month) {
   ifelse(scen==1, {#optimistic
-    shareflex <<- c(0.75, 0.05, 0.2)
-    shareother <<- c(0.25, 0.05, 0.7)
+    shareflex <<- c(0.67, 0.05, 0.28)
+    shareother <<- c(0.15, 0.05, 0.8)
     paramf <<- matrix(c(rep(scen,72),rep(flexshares[,month],3),rep(shareflex[[1]],24), rep(shareflex[[2]],24), rep(shareflex[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
     paramot <<- matrix(c(rep(scen,72),rep(1-flexshares[,month],3),rep(shareother[[1]],24), rep(shareother[[2]],24), rep(shareother[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))},
     ifelse(scen==2, 
 {#2nd scenario=baseline
-  shareflex <<- c(0.5, 0.05, 0.45)
-  shareother <<- c(0.1, 0.05, 0.85)
+  shareflex <<- c(0.33, 0.05, 0.62)
+  shareother <<- c(0.075, 0.05, 0.875)
   paramf <<- matrix(c(rep(scen,72),rep(flexshares[,month],3),rep(shareflex[[1]],24), rep(shareflex[[2]],24), rep(shareflex[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
   paramot <<- matrix(c(rep(scen,72),rep(1-flexshares[,month],3),rep(shareother[[1]],24), rep(shareother[[2]],24), rep(shareother[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))},
 ifelse(scen==3,
 {#3rd scenario=pessimistic
-  shareflex <<- c(0.25, 0.05, 0.7)
+  shareflex <<- c(0.15, 0.05, 0.8)
   shareother <<- c(0, 0.05, 0.95)
   paramf <<- matrix(c(rep(scen,72),rep(flexshares[,month],3),rep(shareflex[[1]],24), rep(shareflex[[2]],24), rep(shareflex[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
   paramot <<- matrix(c(rep(scen,72),rep(1-flexshares[,month],3),rep(shareother[[1]],24), rep(shareother[[2]],24), rep(shareother[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
