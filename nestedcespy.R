@@ -22,7 +22,7 @@ alpha <- c(0.9718)
 # source: http://robjhyndman.com/papers/Elasticity2010.pdf page 8 for own-price elasticity
 # sigma <- c(0.1)  #  allow for any vector
 # 2. elasticity of subtitution between electricity and other goods
-theta <- c(0.1)
+theta <- c(0.05)
 # 3. customer shares of in aggregate demand
 #shares <- 1  # allow for any vector, sum=1
 
@@ -62,7 +62,7 @@ ifelse(scen==3,
   paramot <<- matrix(c(rep(scen,72),rep(1-flexshares[,month],3),rep(shareother[[1]],24), rep(shareother[[2]],24), rep(shareother[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
 })))
 }
-#set.scenario(2,2)
+#set.scenario(1,5)
 
 ####################################################
 
@@ -82,11 +82,12 @@ demandf <- function(beta, pd, pb, Mb, month, scen) {
     e <- ((alpha+(1-alpha)*(exp3^(exp1)))^(-1))
     x <- (Mbsf * e *((1-alpha)*(exp3)^exp2)*beta*(p^(-1*sigma)))+(Mbsot * e *((1-alpha)*(exp3)^exp2)*beta*(p^(-1*sigma)))
     x1 <- x +x1
+    #print(paste(scen,month,startrow, sigmarow,sigma, Mbsf,Mbsot,x))
   }
   return(x1)
 }
 #test
-#sum((demandf(betas, base.p, base.p, M,1,5)/base.p)-base.l) #shoould be 0
+#(demandf(betas, c(base.p[1:5]*2,base.p[6:24]), base.p, M,1,1)/base.p)-(demandf(betas, c(base.p[1:5]*2,base.p[6:24]), base.p, M,1,2)/base.p) #shoould be 0
 
 ####################################################
 betaf <- function(base.load) {
@@ -128,10 +129,10 @@ wtpf <- function(beta, pd, pb, xd, xb, Mb, month, scen) { #b=baseline, d=newdata
     m1 <- m + m1
     #print(paste(exp1, exp2, exp3, sigma, e, m, m1))
   }
-return(mean(m1))
+return(mean(m1)+sum(pd*xb))
 }
 #test
-#wtp(betas, base.p, base.p, base.l, base.l,M,1,5)-M #should be 0
+#wtpf(betas, base.p*0.5, base.p, base.l*20, base.l,M,8,3)-wtpf(betas, base.p*0.5, base.p, base.l*20, base.l,M,8,2) #should be 0
 
 calibrate <- function(base.loads, base.prices, scenario) {
   # force strictly positive prices (never really an issue with base.prices)
@@ -163,7 +164,7 @@ bid <- function(location, timeseries, prices, scenario) {
   # force strictly positive prices
   #prices[prices < 15] <- 15
   #prices <- prices + 10
-  prices[prices < 5] <- 5
+  prices[prices < 1] <- 1
   b.loads = base.loads[,timeseries,location]
   b.prices = base.prices[,timeseries,location] 
   Mb <- sum(b.loads*b.prices)/(1-alpha)
