@@ -113,6 +113,8 @@ args = dict(
     inputs_dir = cmd_line_args.inputs_dir,
     # skip writing capacity factors file if specified (for speed)
     skip_cf = cmd_line_args.skip_cf,    
+    # use heat rate curves for all thermal plants
+    use_incremental_heat_rates=True,
     # could be 'tiny', 'rps', 'rps_mini' or possibly '2007', '2016test', 'rps_test_45', or 'main'
     # '2020_2025' is two 5-year periods, with 24 days per period, starting in 2020 and 2025
     time_sample = cmd_line_args.time_sample,
@@ -220,11 +222,13 @@ args.update(
 alt_args = [
     dict(),         # base scenario
     # dict(inputs_dir='inputs_2045_15_22', time_sample='2045_15_22'),   # short usable scenario
-    dict(inputs_dir='inputs_tiny', time_sample='tiny_24'),   # tiny version of 2045
-    # dict(
-    #     inputs_dir='inputs_2007_15', time_sample='2007_15', load_scen_id='hist', ev_scen_id=None,
-    #     enable_must_run=1, fuel_scen_id='3', use_simple_fuel_costs=True
-    # ),         # 2007 scenario
+    # dict(inputs_dir='inputs_tiny', time_sample='tiny_24'),   # tiny version of 2045
+    dict(
+        inputs_dir='inputs_2007_15', time_sample='2007_15', 
+        load_scen_id='hist', ev_scenario=None,
+        enable_must_run=1, fuel_scen_id='3',
+        use_simple_fuel_costs=True
+    ),         # 2007 scenario
 
     # make a copy of base data, for use in progressive hedging; 
     # use the HECO ref forecast as a starting point (it'll get changed later) 

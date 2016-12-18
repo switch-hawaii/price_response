@@ -1,14 +1,16 @@
 --verbose 
-#--stream-solver
+--stream-solver
+--sorted-output
 --max-iter=100
 --solver=cplexamp
 # --solver-io=nl
---solver-options-string="display=1 primalopt='' advance=2 threads=1 iisfind=1"
+--solver-options-string="display=1 mipdisplay=2 mipgap=0.0001 primalopt='' advance=2 threads=1 iisfind=1"
 #--suffixes iis
---inputs-dir inputs_tiny
+--inputs-dir inputs_2045_15
 --outputs-dir outputs
-#--dr-demand-module switch_mod.hawaii.constant_elasticity_demand_system
+--scenario-name test
 --dr-demand-module switch_mod.hawaii.r_demand_system
 --dr-r-script nestedcespy.R
 --dr-elasticity-scenario 3
---scenario-name test
+--biofuel-limit 1.0
+#--debug

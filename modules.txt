@@ -1,12 +1,15 @@
 switch_mod 
 fuel_markets
-project.no_commit
-hawaii.fuel_markets_expansion
-switch_mod.hawaii.switch_patch
-switch_mod.hawaii.rps
-switch_mod.hawaii.hydrogen
-switch_mod.hawaii.batteries_fixed_calendar_life
-switch_mod.hawaii.demand_response
-# switch_mod.hawaii.constant_elasticity_demand_system
-switch_mod.hawaii.r_demand_system
-
+project.discrete_build
+#project.no_commit
+project.unitcommit
+project.unitcommit.discrete
+#hawaii.fuel_markets_expansion
+hawaii.switch_patch
+hawaii.rps
+hawaii.hydrogen
+hawaii.batteries_fixed_calendar_life
+hawaii.reserves
+hawaii.demand_response
+hawaii.r_demand_system
+hawaii.save_results
