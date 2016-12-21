@@ -1,4 +1,4 @@
- --scenario-name 2045_fossil_flat_scen4 --dr-elasticity-scenario 4 --dr-flat-pricing --inputs-dir inputs_2045_15 --include-module switch_mod.hawaii.no_renewables --exclude-module switch_mod.hawaii.rps
- --scenario-name 2045_fossil_dynamic_scen4 --dr-elasticity-scenario 4 --inputs-dir inputs_2045_15 --include-module switch_mod.hawaii.no_renewables --exclude-module switch_mod.hawaii.rps
- --scenario-name 2045_rps_flat_scen4 --dr-elasticity-scenario 4 --dr-flat-pricing --inputs-dir inputs_2045_15
- --scenario-name 2045_rps_dynamic_scen4 --dr-elasticity-scenario 4 --inputs-dir inputs_2045_15
+ --scenario-name 2045_fossil_flat_scen4 --dr-elasticity-scenario 4 --dr-flat-pricing --rps-deactivate
+ --scenario-name 2045_fossil_dynamic_scen4 --dr-elasticity-scenario 4 --rps-deactivate
+ --scenario-name 2045_rps_flat_scen4 --dr-elasticity-scenario 4 --dr-flat-pricing
+ --scenario-name 2045_rps_dynamic_scen4 --dr-elasticity-scenario 4
