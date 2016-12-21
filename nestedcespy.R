@@ -27,7 +27,7 @@ sigmap <<- c(10, 1.000001, 0.1)
 # but needed if we want to test the R code without running SWITCH
 # (or you can just set the working directory before running R or in RStudio)
 #setwd("~/Dropbox/demand_system") # for mac
-setwd("C:/users/new/Dropbox/demand_system") # only for Imelda's laptop
+#setwd("C:/users/new/Dropbox/demand_system") # only for Imelda's laptop
 
 #load the monthly hourly flexible shares
 flexshares <- read.csv(file="flexshares.csv", header=TRUE, sep=",")

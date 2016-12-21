@@ -1,4 +1,4 @@
- --scenario-name 2045_fossil_flat_scen4 --dr-elasticity-scenario 4 --dr-flat-pricing --rps-deactivate
- --scenario-name 2045_fossil_dynamic_scen4 --dr-elasticity-scenario 4 --rps-deactivate
- --scenario-name 2045_rps_flat_scen4 --dr-elasticity-scenario 4 --dr-flat-pricing
- --scenario-name 2045_rps_dynamic_scen4 --dr-elasticity-scenario 4
+ --scenario-name 2045_fossil_flat_scen3 --dr-elasticity-scenario 3 --dr-flat-pricing --rps-deactivate
+ --scenario-name 2045_fossil_dynamic_scen3 --dr-elasticity-scenario 3 --rps-deactivate
+ --scenario-name 2045_rps_flat_scen3 --dr-elasticity-scenario 3 --dr-flat-pricing
+ --scenario-name 2045_rps_dynamic_scen3 --dr-elasticity-scenario 3

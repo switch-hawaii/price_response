@@ -28,7 +28,7 @@ import switch_mod.hawaii.scenario_data as scenario_data
 # in a simple way.
 marginal_pricing_options = ['marginal']  # + ['total']
 tech_clusters = [["2045_fossil", "2045_rps"]]  # +[["2007", "2045_rps_ev"]]
-elasticity_scenarios = [4]  # + [3, 2, 1]
+elasticity_scenarios = [3]  # + [4, 3, 2, 1]
 dynamic_pricing_options = ["flat", "dynamic"]
 
 scenario_list = []

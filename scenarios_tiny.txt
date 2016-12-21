@@ -1,2 +1,2 @@
- --scenario-name tiny_flat_scen4 --dr-elasticity-scenario 4 --dr-flat-pricing --inputs-dir inputs_tiny
- --scenario-name tiny_dynamic_scen4 --dr-elasticity-scenario 4 --inputs-dir inputs_tiny
+ --scenario-name tiny_flat_scen3 --dr-elasticity-scenario 3 --dr-flat-pricing --inputs-dir inputs_tiny
+ --scenario-name tiny_dynamic_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_tiny
