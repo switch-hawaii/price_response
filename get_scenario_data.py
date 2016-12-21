@@ -49,11 +49,11 @@ for marginal in marginal_pricing_options:
                         s += " --inputs-dir inputs_2007_15"
                         s += " --exclude-modules switch_mod.hawaii.rps"
                     elif tech == "2045_fossil":
-                        s += " --inputs-dir inputs_2045_15 --include-module switch_mod.hawaii.no_renewables --exclude-module switch_mod.hawaii.rps"
+                        s += " --rps-deactivate"
                     elif tech == "2045_rps":
-                        s += " --inputs-dir inputs_2045_15"
+                        s += ""
                     elif tech == "2045_rps_ev":
-                        s += " --inputs-dir inputs_2045_15 --include-module switch_mod.hawaii.ev"
+                        s += " --include-module switch_mod.hawaii.ev"
                         if flat == "flat":
                             s += " --ev-timing bau"
                         else:

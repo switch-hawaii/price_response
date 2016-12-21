@@ -14,34 +14,37 @@ rm(list=ls(all=TRUE))
  	
 alpha <- c(0.9718)
 
-# flexible parameters for different scenarios
-# MF note: judging from the cited paper, it seems like elasticity between hours
-# should be about 0.1 and own-price elasticity should be about -0.3 
-# (opposite of what's shown here)
-# 1. elasticity of subtitution for electricity between hours
-# source: http://robjhyndman.com/papers/Elasticity2010.pdf page 8 for own-price elasticity
-# sigma <- c(0.1)  #  allow for any vector
 # 2. elasticity of subtitution between electricity and other goods
+# following Gowrisankaran et al 2016
 theta <- c(0.1)
-# 3. customer shares of in aggregate demand
-#shares <- 1  # allow for any vector, sum=1
 
+#assumption on interhourly substitution (highly shiftable, slighly shiftable, no shiftable)
+sigmap <<- c(10, 1.000001, 0.1) 
+# slightly shiftbale is not exactly 1 because if it is 1 the results turn to be NA 
+# there is exponential term that is divided by 0
 
-#demand for every hour for each agent
-# X = electricity demand
-
-####################################################
-#demand with different scenario
-
-#select which scenario
-#share (highly shiftable, slighly shiftable, no shiftable)
-sigmap <<- c(10, 1.000001, 0.1)
 # the next line is not needed and doesn't work on computers with different directory structures
-#setwd("~/Dropbox/demand_system")
-#setwd("D:/Dropbox/demand_system")
+# but needed if we want to test the R code without running SWITCH
+# (or you can just set the working directory before running R or in RStudio)
+#setwd("~/Dropbox/demand_system") # for mac
+setwd("C:/users/new/Dropbox/demand_system") # only for Imelda's laptop
 
+#load the monthly hourly flexible shares
 flexshares <- read.csv(file="flexshares.csv", header=TRUE, sep=",")
-#param <- matrix(seq(1,72),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
+
+#scenario latest update
+#                           sigma	Optimistic	Moderate	Pessimistic
+# Share of flexible load
+# Highly Flexible	          10	    67%	        33%	      15%
+# Somewhat Flexible	        1	       5%	        5%	      5%
+# Highly Inflexible	        0.1   	28%	        62%	      80%
+# 
+# Share of inflexible load
+# Highly Flexible	          10	      0%	      8%	      15%
+# Somewhat Flexible	        1	        5%	      5%	      5%
+# Highly Inflexible	        0.1	      95%	      88%	      80%
+
+
 set.scenario <- function(scen, month) {
   ifelse(scen==1, {#optimistic
     shareflex <<- c(0.67, 0.05, 0.28)
@@ -62,33 +65,40 @@ ifelse(scen==3,
   paramot <<- matrix(c(rep(scen,72),rep(1-flexshares[,month],3),rep(shareother[[1]],24), rep(shareother[[2]],24), rep(shareother[[3]],24), rep(sigmap[[1]],24),rep(sigmap[[2]],24),rep(sigmap[[3]],24)),72,4, dimnames=list(seq(1,72),c("scen","type","share","sigma")))
 })))
 }
-set.scenario(1,5)
+
+#for testing
+#set.scenario(1,5) 
 
 ####################################################
-
-demandf <- function(beta, pd, pb, Mb, month, scen) {
+# main demand function
+demandf <- function(beta, pd, pb, Mb, month, scen) { 
+  #pb = price at baseline; pd=new price; Mb=budget at baseline; scen=which scenario
   x1 <- 0
   p <- pd/pb
   set.scenario(scen,month)
-  for (i in (1:3)) {
+  for (i in (1:3)) { #for each Optimistic-Moderate-Pessimistic sigma value
     ifelse (i==1, startrow <- 1, startrow<- ((i-1)*24)+1)
     sigmarow <- i*24
+    #budget for each share of load in each hour for FLEXIBLE loads
     Mbsf <- paramf[startrow:sigmarow,c("type")]*paramf[startrow:sigmarow,c("share")]*Mb
+    #budget for each share of load in each hour for INFLEXIBLE loads
     Mbsot <- paramot[startrow:sigmarow,c("type")]*paramot[startrow:sigmarow,c("share")]*Mb
     sigma <- paramf[sigmarow,c("sigma")]
     exp1 <- (1-theta)/(1-sigma)
     exp2 <- (sigma-theta)/(1-sigma)
     exp3 <- sum(beta*(p^(1-sigma)))
     e <- ((alpha+(1-alpha)*(exp3^(exp1)))^(-1))
+    #total demand is the sum of FLEXIBLE and INFLEXIBLE
     x <- (Mbsf * e *((1-alpha)*(exp3)^exp2)*beta*(p^(-1*sigma)))+(Mbsot * e *((1-alpha)*(exp3)^exp2)*beta*(p^(-1*sigma)))
+    #total demand in one scenario is the sum of each sigma value (Optimistic-Moderate-Pessimistic)
     x1 <- x +x1
-    #print(paste(scen,month,startrow, sigmarow,sigma, Mbsf,Mbsot,x))
   }
   return(x1)
 }
 #test
 #(demandf(betas, c(base.p[1:5]*2,base.p[6:24]), base.p, M,1,1)/base.p)-(demandf(betas, c(base.p[1:5]*2,base.p[6:24]), base.p, M,1,2)/base.p) #shoould be 0
 
+#demand only for flexible shares
 demandfflex <- function(beta, pd, pb, Mb, month, scen) {
   x1 <- 0
   p <- pd/pb
@@ -104,11 +114,11 @@ demandfflex <- function(beta, pd, pb, Mb, month, scen) {
     e <- ((alpha+(1-alpha)*(exp3^(exp1)))^(-1))
     x <- (Mbsf * e *((1-alpha)*(exp3)^exp2)*beta*(p^(-1*sigma)))
     x1 <- x +x1
-    #print(paste(scen,month,startrow, sigmarow,sigma, Mbsf,Mbsot,x))
   }
   return(x1)
 }
 
+#demand only for other shares (1- flexible shares)
 demandfother <- function(beta, pd, pb, Mb, month, scen) {
   x1 <- 0
   p <- pd/pb
@@ -130,6 +140,7 @@ demandfother <- function(beta, pd, pb, Mb, month, scen) {
 }
 
 ####################################################
+#share parameters calibrated based on baseload
 betaf <- function(base.load) {
   betas <- base.load/sum(base.load)
   return (betas)
@@ -137,6 +148,7 @@ betaf <- function(base.load) {
 
 # unit expenditure function
 expf <- function(beta, pd, pb, month, scen) {
+  #pb = price at baseline; pd=new price; Mb=budget at baseline; scen=which scenario
   e1 <- 0
   p <- pd/pb
   set.scenario(scen,month)
@@ -153,7 +165,9 @@ expf <- function(beta, pd, pb, month, scen) {
   return(e1)
 }
 
-wtpf <- function(beta, pd, pb, xd, xb, Mb, month, scen) { #b=baseline, d=newdata 
+#willingness to pay function total
+wtpf <- function(beta, pd, pb, xd, xb, Mb, month, scen) { 
+  #pb,xb = price, demand at baseline; pd, xd=new price, new demand; Mb=budget at baseline; scen=which scenario
   m1 <- 0
   p <- pd/pb
   set.scenario(scen,month)
@@ -169,12 +183,14 @@ wtpf <- function(beta, pd, pb, xd, xb, Mb, month, scen) { #b=baseline, d=newdata
     m1 <- m + m1
     #print(paste(exp1, exp2, exp3, sigma, e, m, m1))
   }
-return(mean(m1)+sum(pd*xb))
+return(mean(m1)+sum(pd*xd)) #willingnesstopay include p*q
 }
 #test
 #wtpf(betas, base.p*0.5, base.p, base.l*20, base.l,M,8,3)-wtpf(betas, base.p*0.5, base.p, base.l*20, base.l,M,8,2) #should be 0
 
-wtpfflex <- function(beta, pd, pb, xd, xb, Mb, month, scen) { #b=baseline, d=newdata 
+
+#willingness to pay function only for FLEXIBE shares
+wtpfflex <- function(beta, pd, pb, xd, xb, Mb, month, scen) { 
   m1 <- 0
   p <- pd/pb
   set.scenario(scen,month)
@@ -190,10 +206,11 @@ wtpfflex <- function(beta, pd, pb, xd, xb, Mb, month, scen) { #b=baseline, d=new
     m1 <- m + m1
     #print(paste(exp1, exp2, exp3, sigma, e, m, m1))
   }
-  return(mean(m1)+sum(pd*xb))
+  return(mean(m1)+sum(pd*xd))
 }
 
-wtpfother <- function(beta, pd, pb, xd, xb, Mb, month, scen) { #b=baseline, d=newdata 
+#willingness to pay function only for remaining shares
+wtpfother <- function(beta, pd, pb, xd, xb, Mb, month, scen) { 
   m1 <- 0
   p <- pd/pb
   set.scenario(scen,month)
@@ -209,7 +226,29 @@ wtpfother <- function(beta, pd, pb, xd, xb, Mb, month, scen) { #b=baseline, d=ne
     m1 <- m + m1
     #print(paste(exp1, exp2, exp3, sigma, e, m, m1))
   }
-  return(mean(m1)+sum(pd*xb))
+  return(mean(m1)+sum(pd*xd))
+}
+
+
+#consumer surplus=willingness to pay - (p*q)
+csf <- function(beta, pd, pb, xd, xb, Mb, month, scen) { 
+  #pb,xb = price, demand at baseline; pd, xd=new price, new demand; Mb=budget at baseline; scen=which scenario
+  m1 <- 0
+  p <- pd/pb
+  set.scenario(scen,month)
+  for (i in (1:3)) {
+    ifelse (i==1, startrow <- 1, startrow<- ((i-1)*24)+1)
+    sigmarow <- i*24
+    sigma <- paramf[sigmarow,c("sigma")]
+    exp1 <- (1-theta)/(1-sigma)
+    exp2 <- 1/(1-theta)
+    exp3 <- sum(beta*(p^(1-sigma)))
+    e <- ((alpha+(1-alpha)*(exp3^(exp1)))^exp2)
+    m <- ((paramf[startrow:sigmarow,c("type")]*paramf[startrow:sigmarow,c("share")]*Mb)/e)+((paramot[startrow:sigmarow,c("type")]*paramot[startrow:sigmarow,c("share")]*Mb/e))
+    m1 <- m + m1
+    #print(paste(exp1, exp2, exp3, sigma, e, m, m1))
+  }
+  return(mean(m1)) #it uses mean because it return a vector of 1x24 with the same value
 }
 
 calibrate <- function(base.loads, base.prices, scenario) {
@@ -325,6 +364,7 @@ bid <- function(location, timeseries, prices, pup, pdown, scenario) {
   return (list(demand, demandup, demanddown, wtp))
 }
 
+
 makearray <- function() {
 	array(0:31, dim=c(3,2,2,2), dimnames=list(c(12, 13, 14), c("prices", "demand"), c("oahu","maui"), c(1, 2)))
 }
@@ -340,6 +380,10 @@ showobject <- function(obj) {
 	return (obj)
 }
 
+
+#####################################################################
+#                  BELOW ARE FOR TESTING      
+#####################################################################
 
 test_calib <- function () {
 	base.loads <- 1000 * array(rep(1, 5), dim=c(5,1,1), dimnames=list(c(12, 13, 14, 15, 16), c(100), c("oahu")))
@@ -527,4 +571,21 @@ reservetest <- function(prices, pup, pdown, scenario) {
 # reservetest(b.prices, 90, 20, 1)
 # reservetest(b.prices, 0, 0, 1)
 # reservetest(b.prices, 200, 200, 1)
-# wtpf(betas, b.prices, b.prices, b.loads, b.loads, Mb, 1,1)
+# newprices  <- rep(134.78, 24) 
+# scen <- 3
+# for (month in (1:12)) {
+#   print(month)
+#   demand <- demandf(betas, newprices, b.prices, Mb, 1,1)/b.prices
+#   deltaq<- (demand-b.loads)
+#   deltap <- (newprices-b.prices)
+#   deltacs <- (csf(betas, newprices, b.prices, demand, b.loads, Mb, month,scen)-csf(betas, b.prices, b.prices, b.loads, b.loads, Mb, month,scen))
+#   print (deltacs)
+#   print (sum(deltap*deltaq))
+#   print(wtpf(betas, newprices, b.prices, demand, b.loads, Mb, 1,1)- wtpf(betas, newprices, b.prices, b.loads, b.loads, Mb, 1,1))
+# }
+
+# #test if wtp=cs+(p*q)
+# csf(betas, newprices, b.prices, demand, b.loads, Mb, month,scen)
+# sum(demand*newprices)
+# csf(betas, newprices, b.prices, demand, b.loads, Mb, month,scen)+sum(demand*newprices)
+# wtpf(betas, newprices, b.prices, demand, b.loads, Mb, month,scen)
