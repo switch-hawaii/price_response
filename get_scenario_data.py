@@ -26,77 +26,42 @@ import switch_mod.hawaii.scenario_data as scenario_data
 # (to investigate the effect of "taxes" to recover stranded costs), but they 
 # don't really address a question we're interested in right now, certainly not
 # in a simple way.
-marginal_pricing_options = ['marginal']  # + ['total']
-tech_clusters = [["2045_fossil", "2045_rps"]]  # +[["2007", "2045_rps_ev"]]
+# marginal_pricing_options = ['marginal']  # + ['total']
+# tech_clusters = [["2045_fossil", "2045_free", "2045_rps"]]  # +[["2007", "2045_rps_ev"]]
 elasticity_scenarios = [3]  # + [4, 3, 2, 1]
 dynamic_pricing_options = ["flat", "dynamic"]
+price_scenarios = ['future_cost', 'current_cost']
+rps_levels = ['rps', 'free', 'fossil']
+
 
 scenario_list = []
-for marginal in marginal_pricing_options:
-    for tech_cluster in tech_clusters:
-        for elasticity_scen in elasticity_scenarios:
-            for tech in tech_cluster:
-                for flat in dynamic_pricing_options:
-                    # print flat, marginal, elasticity_scen, tech
-                    s = ""
-                    s += " --scenario-name " +  "_".join([tech, flat, "scen"+str(elasticity_scen)])
-                    s += " --dr-elasticity-scenario " + str(elasticity_scen)
-                    if flat == "flat":
-                        s += " --dr-flat-pricing"
-                    if marginal == "total":
-                        s += " --dr-total-cost-pricing"
-                    if tech == "2007":
-                        s += " --inputs-dir inputs_2007_15"
-                        s += " --exclude-modules switch_mod.hawaii.rps"
-                    elif tech == "2045_fossil":
-                        s += " --rps-deactivate"
-                    elif tech == "2045_rps":
-                        s += ""
-                    elif tech == "2045_rps_ev":
-                        s += " --include-module switch_mod.hawaii.ev"
-                        if flat == "flat":
-                            s += " --ev-timing bau"
-                        else:
-                            s += " --ev-timing optimal"
-                    else:
-                        print "WARNING: unrecognized technology option {}.".format(tech)
-                    scenario_list.append(s)
+for elasticity_scen in elasticity_scenarios:
+    for price_scenario in price_scenarios:
+        for rps_level in rps_levels:
+            for flat in dynamic_pricing_options:
+                # print flat, marginal, elasticity_scen, tech
+                s = ""
+                s += " --scenario-name " +  \
+                    "_".join([rps_level, price_scenario, flat, "scen"+str(elasticity_scen)])
+
+                s += " --dr-elasticity-scenario " + str(elasticity_scen)
+
+                if price_scenario == 'current_cost':
+                    s += ' --inputs-dir inputs_2045_current_cost'
+
+                if rps_level == 'free':
+                    s += ' --rps-deactivate'
+                elif rps_level == 'fossil':
+                    s += ' --rps-no-renewables'
+
+                if flat == "flat":
+                    s += " --dr-flat-pricing"
+
+                scenario_list.append(s)
 
 with open('scenarios.txt', 'w') as f:
     f.writelines(s + '\n' for s in scenario_list)
 
-scenario_list = []
-for flat in dynamic_pricing_options:
-    for marginal in marginal_pricing_options:
-        for elasticity_scen in elasticity_scenarios:
-            for tech in ["tiny"]:
-                # print flat, marginal, elasticity_scen, tech
-                s = ""
-                s += " --scenario-name " + "_".join([tech, flat, "scen"+str(elasticity_scen)])
-                s += " --dr-elasticity-scenario " + str(elasticity_scen)
-                if flat == "flat":
-                    s += " --dr-flat-pricing"
-                if marginal == "total":
-                    s += " --dr-total-cost-pricing"
-                if tech == "2007":
-                    s += " --inputs-dir inputs_2007_15"
-                    s += " --exclude-modules rps"
-                elif tech == "2045_fossil":
-                    s += " --inputs-dir inputs_2045_15 --include-module no_renewables --exclude-module rps"
-                elif tech == "2045_rps":
-                    s += " --inputs-dir inputs_2045_15"
-                elif tech == "2045_rps_ev":
-                    s += " --inputs-dir inputs_2045_15 --include-module ev"
-                    if flat == "flat":
-                        s += " --ev-flat"
-                elif tech == "tiny":
-                    s += " --inputs-dir inputs_tiny"
-                else:
-                    print "WARNING: unrecognized technology option {}.".format(tech)
-                scenario_list.append(s)
-
-with open('scenarios_tiny.txt', 'w') as f:
-    f.writelines(s + '\n' for s in scenario_list)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--skip-cf', action='store_true', default=False,
@@ -126,6 +91,7 @@ args = dict(
     fuel_scen_id='PSIP_2016_09',
     # Blazing a Bold Frontier, Stuck in the Middle, No Burning Desire, Full Adoption, 
     # Business as Usual, (omitted or None=none)
+    cap_cost_scen_id='psip_1609',
     ev_scenario = 'Blazing a Bold Frontier',   
     # should the must_run flag be converted to set minimum commitment for existing plants?
     enable_must_run = 0,     
@@ -153,6 +119,9 @@ psip_battery_cost_per_mwh = [
     1000.0 * nom_cost * 1.018**(args["base_financial_year"] - year)
         for year, nom_cost in zip(psip_battery_years, psip_nominal_battery_cost_per_kwh)
 ]
+# flat price series to use for flat-pricing case
+psip_flat_battery_cost_per_mwh = [psip_battery_cost_per_mwh[1]] * len(psip_battery_cost_per_mwh)
+
 # TODO: retire and replace with cheaper model after 15 years
 args.update(
     BATTERY_CAPITAL_COST_YEARS = psip_battery_years,
@@ -224,11 +193,17 @@ alt_args = [
     # dict(inputs_dir='inputs_2045_15_22', time_sample='2045_15_22'),   # short usable scenario
     # dict(inputs_dir='inputs_tiny', time_sample='tiny_24'),   # tiny version of 2045
     dict(
-        inputs_dir='inputs_2007_15', time_sample='2007_15', 
-        load_scen_id='hist', ev_scenario=None,
-        enable_must_run=1, fuel_scen_id='3',
-        use_simple_fuel_costs=True
-    ),         # 2007 scenario
+        inputs_dir='inputs_2045_current_cost', 
+        cap_cost_scen_id='psip_1609_flat',
+        battery_capital_cost_per_mwh_capacity_by_year=psip_flat_battery_cost_per_mwh
+    ),
+
+    # dict(
+    #     inputs_dir='inputs_2007_15', time_sample='2007_15',
+    #     load_scen_id='hist', ev_scenario=None,
+    #     enable_must_run=1, fuel_scen_id='3',
+    #     use_simple_fuel_costs=True
+    # ),         # 2007 scenario
 
     # make a copy of base data, for use in progressive hedging; 
     # use the HECO ref forecast as a starting point (it'll get changed later) 

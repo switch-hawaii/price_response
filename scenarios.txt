@@ -1,4 +1,12 @@
- --scenario-name 2045_fossil_flat_scen3 --dr-elasticity-scenario 3 --dr-flat-pricing --rps-deactivate
- --scenario-name 2045_fossil_dynamic_scen3 --dr-elasticity-scenario 3 --rps-deactivate
- --scenario-name 2045_rps_flat_scen3 --dr-elasticity-scenario 3 --dr-flat-pricing
- --scenario-name 2045_rps_dynamic_scen3 --dr-elasticity-scenario 3
+ --scenario-name rps_future_cost_flat_scen3 --dr-elasticity-scenario 3 --dr-flat-pricing
+ --scenario-name rps_future_cost_dynamic_scen3 --dr-elasticity-scenario 3
+ --scenario-name free_future_cost_flat_scen3 --dr-elasticity-scenario 3 --rps-deactivate --dr-flat-pricing
+ --scenario-name free_future_cost_dynamic_scen3 --dr-elasticity-scenario 3 --rps-deactivate
+ --scenario-name fossil_future_cost_flat_scen3 --dr-elasticity-scenario 3 --rps-no-renewables --dr-flat-pricing
+ --scenario-name fossil_future_cost_dynamic_scen3 --dr-elasticity-scenario 3 --rps-no-renewables
+ --scenario-name rps_current_cost_flat_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_2045_current_cost --dr-flat-pricing
+ --scenario-name rps_current_cost_dynamic_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_2045_current_cost
+ --scenario-name free_current_cost_flat_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_2045_current_cost --rps-deactivate --dr-flat-pricing
+ --scenario-name free_current_cost_dynamic_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_2045_current_cost --rps-deactivate
+ --scenario-name fossil_current_cost_flat_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_2045_current_cost --rps-no-renewables --dr-flat-pricing
+ --scenario-name fossil_current_cost_dynamic_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_2045_current_cost --rps-no-renewables
