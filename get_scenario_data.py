@@ -134,7 +134,10 @@ args.update(
 )
 
 # electrolyzer data from centralized current electrolyzer scenario version 3.1 in 
-# http://www.hydrogen.energy.gov/h2a_prod_studies.html -> 01D_Current_Central_Hydrogen_Production_from_PEM_Electrolysis_version_3.1.xlsm
+# http://www.hydrogen.energy.gov/h2a_prod_studies.html -> 
+# "Current Central Hydrogen Production from PEM Electrolysis version 3.101.xlsm"
+# and 
+# "Future Central Hydrogen Production from PEM Electrolysis version 3.101.xlsm" (2025)
 # (cited by 46719.pdf)
 # note: we neglect land costs because they are small and can be recovered later
 # TODO: move electrolyzer refurbishment costs from fixed to variable
@@ -148,16 +151,33 @@ inflate_2007 = (1.0+args["inflation_rate"])**(args["base_financial_year"]-2007)
 inflate_2008 = (1.0+args["inflation_rate"])**(args["base_financial_year"]-2008)
 h2_lhv_mj_per_kg = 120.21   # from http://hydrogen.pnl.gov/tools/lower-and-higher-heating-values-fuels
 h2_mwh_per_kg = h2_lhv_mj_per_kg / 3600     # (3600 MJ/MWh)
-electrolyzer_kg_per_mwh = 1000.0/54.3    # (1000 kWh/1 MWh)(1kg/54.3 kWh)   # TMP_Usage cell
-electrolyzer_mw = 50000.0 * (1.0/electrolyzer_kg_per_mwh) * (1.0/24.0)   # (kg/day) * (MWh/kg) * (day/h)    # design_cap cell
 
-args.update(
-    hydrogen_electrolyzer_capital_cost_per_mw=inflate_2007*144641663.0/electrolyzer_mw,        # depr_cap cell
-    hydrogen_electrolyzer_fixed_cost_per_mw_year=inflate_2007*7134560.0/electrolyzer_mw,         # fixed cell
+current_electrolyzer_kg_per_mwh=1000.0/54.3    # (1000 kWh/1 MWh)(1kg/54.3 kWh)   # TMP_Usage
+current_electrolyzer_mw = 50000.0 * (1.0/current_electrolyzer_kg_per_mwh) * (1.0/24.0)   # (kg/day) * (MWh/kg) * (day/h)    # design_cap cell
+future_electrolyzer_kg_per_mwh=1000.0/50.2    # TMP_Usage cell
+future_electrolyzer_mw = 50000.0 * (1.0/future_electrolyzer_kg_per_mwh) * (1.0/24.0)   # (kg/day) * (MWh/kg) * (day/h)    # design_cap cell
+
+current_hydrogen_args = dict(
+    hydrogen_electrolyzer_capital_cost_per_mw=144641663*inflate_2007/current_electrolyzer_mw,        # depr_cap cell
+    hydrogen_electrolyzer_fixed_cost_per_mw_year=7134560.0*inflate_2007/current_electrolyzer_mw,         # fixed cell
     hydrogen_electrolyzer_variable_cost_per_kg=0.0,       # they only count electricity as variable cost
-    hydrogen_electrolyzer_kg_per_mwh=electrolyzer_kg_per_mwh,
+    hydrogen_electrolyzer_kg_per_mwh=current_electrolyzer_kg_per_mwh,
     hydrogen_electrolyzer_life_years=40,                      # plant_life cell
 
+    hydrogen_fuel_cell_capital_cost_per_mw=813000*inflate_2008,   # 46719.pdf
+    hydrogen_fuel_cell_fixed_cost_per_mw_year=27000*inflate_2008,   # 46719.pdf
+    hydrogen_fuel_cell_variable_cost_per_mwh=0.0, # not listed in 46719.pdf; we should estimate a wear-and-tear factor
+    hydrogen_fuel_cell_mwh_per_kg=0.53*h2_mwh_per_kg,   # efficiency from 46719.pdf
+    hydrogen_fuel_cell_life_years=15,   # 46719.pdf
+)
+
+args.update(
+    hydrogen_electrolyzer_capital_cost_per_mw=58369966*inflate_2007/future_electrolyzer_mw,        # depr_cap cell
+    hydrogen_electrolyzer_fixed_cost_per_mw_year=3560447*inflate_2007/future_electrolyzer_mw,         # fixed cell
+    hydrogen_electrolyzer_variable_cost_per_kg=0.0,       # they only count electricity as variable cost
+    hydrogen_electrolyzer_kg_per_mwh=future_electrolyzer_kg_per_mwh,
+    hydrogen_electrolyzer_life_years=40,                      # plant_life cell
+    
     hydrogen_liquifier_capital_cost_per_kg_per_hour=inflate_1995*25600,       # 25106.pdf p. 18, for 1500 kg/h plant, approx. 100 MW
     hydrogen_liquifier_fixed_cost_per_kg_hour_year=0.0,   # unknown, assumed low
     hydrogen_liquifier_variable_cost_per_kg=0.0,      # 25106.pdf p. 23 counts tank, equipment and electricity, but those are covered elsewhere
@@ -167,11 +187,14 @@ args.update(
     liquid_hydrogen_tank_capital_cost_per_kg=inflate_1995*18,         # 25106.pdf p. 20, for 300000 kg vessel
     liquid_hydrogen_tank_life_years=40,                       # unknown, assumed long
 
-    hydrogen_fuel_cell_capital_cost_per_mw=813000*inflate_2008,   # 46719.pdf
-    hydrogen_fuel_cell_fixed_cost_per_mw_year=27000*inflate_2008,   # 46719.pdf
+
+    # table 5, p. 13 of 46719.pdf, low-cost 
+    # ('The value of $434/kW for the low-cost case is consistent with projected values for stationary fuel cells')
+    hydrogen_fuel_cell_capital_cost_per_mw=434000*inflate_2008,
+    hydrogen_fuel_cell_fixed_cost_per_mw_year=20000*inflate_2008,
     hydrogen_fuel_cell_variable_cost_per_mwh=0.0, # not listed in 46719.pdf; we should estimate a wear-and-tear factor
-    hydrogen_fuel_cell_mwh_per_kg=0.53*h2_mwh_per_kg,   # efficiency from 46719.pdf
-    hydrogen_fuel_cell_life_years=15,   # 46719.pdf
+    hydrogen_fuel_cell_mwh_per_kg=0.58*h2_mwh_per_kg,
+    hydrogen_fuel_cell_life_years=26,
 )
 
 args.update(
@@ -187,16 +210,19 @@ args.update(
     rps_targets = {2015: 0.15, 2020: 0.30, 2030: 0.40, 2040: 0.70, 2045: 1.00}
 )
 
+flat_args = dict(
+    inputs_dir='inputs_2045_current_cost', 
+    cap_cost_scen_id='psip_1609_flat',
+    battery_capital_cost_per_mwh_capacity_by_year=psip_flat_battery_cost_per_mwh,
+)
+flat_args.update(current_hydrogen_args)
+
 # data definitions for alternative scenarios
 alt_args = [
     dict(),         # base scenario
     # dict(inputs_dir='inputs_2045_15_22', time_sample='2045_15_22'),   # short usable scenario
     # dict(inputs_dir='inputs_tiny', time_sample='tiny_24'),   # tiny version of 2045
-    dict(
-        inputs_dir='inputs_2045_current_cost', 
-        cap_cost_scen_id='psip_1609_flat',
-        battery_capital_cost_per_mwh_capacity_by_year=psip_flat_battery_cost_per_mwh
-    ),
+    flat_args,
 
     # dict(
     #     inputs_dir='inputs_2007_15', time_sample='2007_15',
