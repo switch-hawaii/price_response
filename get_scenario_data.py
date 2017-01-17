@@ -86,7 +86,7 @@ args = dict(
     # subset of load zones to model
     load_zones = ('Oahu',),       
     # "hist"=pseudo-historical, "med"="Moved by Passion", "flat"=2015 levels, "PSIP_2016_04"=PSIP 4/16
-    load_scen_id = "PSIP_2016_04", 
+    load_scen_id = "PSIP_2016_12", 
     # '1'=low, '2'=high, '3'=reference, 'EIA_ref'=EIA-derived reference level, 'hedged'=2020-2030 prices from Hawaii Gas
     fuel_scen_id='PSIP_2016_09',
     # Blazing a Bold Frontier, Stuck in the Middle, No Burning Desire, Full Adoption, 
