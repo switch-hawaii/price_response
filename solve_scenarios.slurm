@@ -1,8 +1,8 @@
 #!/bin/sh
 
 ## reporting
-#SBATCH --error=%A.err
-#SBATCH --output=%A.out
+#SBATCH --error=logs/%A_%a.err
+#SBATCH --output=logs/%A_%a.out
 # change the following lines to have one pound sign instead of two
 # if you want to receive notices about jobs
 ##SBATCH --mail-type=BEGIN,END,FAIL,REQUEUE,TIME_LIMIT_80
@@ -12,9 +12,15 @@
 
 #SBATCH --job-name=demand_scenarios
 #SBATCH --partition=community.q
-#SBATCH --time=2-00:00:00
-#SBATCH --nodes=1
-# tasks-per-node can be up to 20
-#SBATCH --tasks-per-node=5
+#SBATCH --time=1-00:00:00
+## number of parallel processes to run (will usually all run on same node)
+##SBATCH --ntasks=14
+# specify the number of parallel tasks to run in the commmand below
+#SBATCH --array=1-20
 
-srun --unbuffered solve_scenarios.sh
+# run the solve_scenarios.sh script with any arguments passed to sbatch
+# srun --unbuffered solve_scenarios.sh "$@"
+
+module load lang/Python/2.7.10/python
+srun --unbuffered switch solve-scenarios "$@"
+
