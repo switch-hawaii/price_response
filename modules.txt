@@ -1,7 +1,5 @@
 switch_mod 
 fuel_markets
-project.discrete_build
-#project.no_commit
 project.unitcommit
 project.unitcommit.discrete
 #hawaii.fuel_markets_expansion
