@@ -13,14 +13,9 @@
 #SBATCH --job-name=demand_scenarios
 #SBATCH --partition=community.q
 #SBATCH --time=1-00:00:00
-## number of parallel processes to run (will usually all run on same node)
-##SBATCH --ntasks=14
 # specify the number of parallel tasks to run in the commmand below
 #SBATCH --array=1-20
 
-# run the solve_scenarios.sh script with any arguments passed to sbatch
-# srun --unbuffered solve_scenarios.sh "$@"
-
 module load lang/Python/2.7.10/python
-srun --unbuffered switch solve-scenarios "$@"
+srun --unbuffered switch solve-scenarios --scenario-queue sq/sq_$SLURM_ARRAY_JOB_ID "$@"
 

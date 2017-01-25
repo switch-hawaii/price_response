@@ -2,8 +2,9 @@ switch_mod
 fuel_markets
 project.unitcommit
 project.unitcommit.discrete
-#hawaii.fuel_markets_expansion
 hawaii.switch_patch
+hawaii.fuel_markets_expansion
+hawaii.lng_conversion
 hawaii.ev
 hawaii.rps
 hawaii.kalaeloa

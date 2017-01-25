@@ -94,7 +94,7 @@ args = dict(
     # "hist"=pseudo-historical, "med"="Moved by Passion", "flat"=2015 levels, "PSIP_2016_04"=PSIP 4/16
     load_scen_id = "PSIP_2016_12", 
     # '1'=low, '2'=high, '3'=reference, 'EIA_ref'=EIA-derived reference level, 'hedged'=2020-2030 prices from Hawaii Gas
-    fuel_scen_id='PSIP_2016_09',
+    fuel_scen_id='unhedged_2016_11_22',
     # Blazing a Bold Frontier, Stuck in the Middle, No Burning Desire, Full Adoption, 
     # Business as Usual, (omitted or None=none)
     cap_cost_scen_id='psip_1609',
@@ -219,7 +219,7 @@ args.update(
 flat_args = dict(
     inputs_dir='inputs_2045_current_cost', 
     cap_cost_scen_id='psip_1609_flat',
-    fuel_scen_id='flat_2007',
+    fuel_scen_id='flat_2016',
     battery_capital_cost_per_mwh_capacity_by_year=psip_flat_battery_cost_per_mwh,
 )
 flat_args.update(current_hydrogen_args)
