@@ -1,0 +1,8 @@
+regional_fuel_market	fuel	tier	period	unit_cost	max_avail_at_cost	fixed_cost	max_age
+Hawaii_Biodiesel	Biodiesel	base	2045	47.947931106	.	0.0	.
+Hawaii_Coal	Coal	base	2045	3.60004535938	.	.	.
+Hawaii_Diesel	Diesel	base	2045	31.196601693	.	0.0	.
+Hawaii_LNG	LNG	bulk	2045	22.172760471	51113806.0	1.07150973446	.
+Hawaii_LSFO	LSFO	base	2045	28.236421239	.	0.0	.
+Hawaii_LSFO-Diesel-Blend	LSFO-Diesel-Blend	base	2045	30.7752817341	.	0.0	.
+Hawaii_Pellet-Biomass	Pellet-Biomass	base	2045	13.999578125	.	.	.

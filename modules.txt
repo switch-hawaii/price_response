@@ -4,6 +4,7 @@ project.unitcommit
 project.unitcommit.discrete
 #hawaii.fuel_markets_expansion
 hawaii.switch_patch
+hawaii.ev
 hawaii.rps
 hawaii.kalaeloa
 hawaii.hydrogen

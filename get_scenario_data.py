@@ -33,7 +33,6 @@ dynamic_pricing_options = ["flat", "dynamic"]
 price_scenarios = ['future_cost', 'current_cost']
 rps_levels = ['rps', 'free', 'fossil']
 
-
 scenario_list = []
 for elasticity_scen in elasticity_scenarios:
     for price_scenario in price_scenarios:
@@ -55,10 +54,17 @@ for elasticity_scen in elasticity_scenarios:
                     s += ' --rps-no-renewables'
 
                 if flat == "flat":
-                    s += " --dr-flat-pricing"
+                    s += " --dr-flat-pricing --ev-timing bau"
 
                 scenario_list.append(s)
 
+# sensitivity cases
+scenario_list.extend([
+    '--scenario-name rps_future_dynamic_ev_full_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_ev_full',
+    '--scenario-name rps_future_dynamic_ev_2016_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_ev_2016',
+    '--scenario-name rps_future_dynamic_2007_loads_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_2007_loads'
+])
+    
 with open('scenarios.txt', 'w') as f:
     f.writelines(s + '\n' for s in scenario_list)
 
@@ -92,7 +98,7 @@ args = dict(
     # Blazing a Bold Frontier, Stuck in the Middle, No Burning Desire, Full Adoption, 
     # Business as Usual, (omitted or None=none)
     cap_cost_scen_id='psip_1609',
-    ev_scenario = 'Blazing a Bold Frontier',   
+    ev_scenario = 'Half Adoption',   
     # should the must_run flag be converted to set minimum commitment for existing plants?
     enable_must_run = 0,     
     # list of technologies to exclude (currently CentralFixedPV, because we don't have the logic
@@ -213,6 +219,7 @@ args.update(
 flat_args = dict(
     inputs_dir='inputs_2045_current_cost', 
     cap_cost_scen_id='psip_1609_flat',
+    fuel_scen_id='flat_2007',
     battery_capital_cost_per_mwh_capacity_by_year=psip_flat_battery_cost_per_mwh,
 )
 flat_args.update(current_hydrogen_args)
@@ -223,6 +230,9 @@ alt_args = [
     # dict(inputs_dir='inputs_2045_15_22', time_sample='2045_15_22'),   # short usable scenario
     # dict(inputs_dir='inputs_tiny', time_sample='tiny_24'),   # tiny version of 2045
     flat_args,
+    dict(inputs_dir='inputs_ev_full', ev_scenario='Full Adoption'),
+    dict(inputs_dir='inputs_ev_2016', ev_scenario='Flat 2016'),
+    dict(inputs_dir='inputs_2007_loads', load_scen_id='flat_2007'),
 
     # dict(
     #     inputs_dir='inputs_2007_15', time_sample='2007_15',
