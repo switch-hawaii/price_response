@@ -28,35 +28,49 @@ import switch_mod.hawaii.scenario_data as scenario_data
 # in a simple way.
 # marginal_pricing_options = ['marginal']  # + ['total']
 # tech_clusters = [["2045_fossil", "2045_free", "2045_rps"]]  # +[["2007", "2045_rps_ev"]]
-elasticity_scenarios = [3]  # + [4, 3, 2, 1]
+
+load_scenarios = ['2045_load', '2007_load']
+ev_scenarios = ['half_ev', 'full_ev', '2016_ev']
+elasticity_scenarios = [1, 2, 3, 4]
 dynamic_pricing_options = ["flat", "dynamic"]
 price_scenarios = ['future_cost', 'current_cost']
 rps_levels = ['rps', 'free', 'fossil']
 
 scenario_list = []
-for elasticity_scen in elasticity_scenarios:
-    for price_scenario in price_scenarios:
-        for rps_level in rps_levels:
-            for flat in dynamic_pricing_options:
-                # print flat, marginal, elasticity_scen, tech
-                s = ""
-                s += " --scenario-name " +  \
-                    "_".join([rps_level, price_scenario, flat, "scen"+str(elasticity_scen)])
+for load_scenario in load_scenarios:
+    for ev_scenario in ev_scenarios:
+        for elasticity_scen in elasticity_scenarios:
+            for price_scenario in price_scenarios:
+                for rps_level in rps_levels:
+                    for flat in dynamic_pricing_options:
+                        if load_scenario != '2045_load' and ev_scenario != 'half_ev':
+                            # don't do corner cases
+                            continue
+                
+                        # print flat, marginal, elasticity_scen, tech
+                        s = ""
+                        s += " --scenario-name " +  \
+                            "_".join([
+                                rps_level, price_scenario, flat,
+                                load_scenario, ev_scenario, 
+                                "scen"+str(elasticity_scen)
+                            ])
 
-                s += " --dr-elasticity-scenario " + str(elasticity_scen)
+                        s += " --dr-elasticity-scenario " + str(elasticity_scen)
 
-                if price_scenario == 'current_cost':
-                    s += ' --inputs-dir inputs_2045_current_cost'
+                        s += ' --inputs-dir ' + '_'.join([
+                            'inputs', price_scenario, load_scenario, ev_scenario
+                        ])
 
-                if rps_level == 'free':
-                    s += ' --rps-deactivate'
-                elif rps_level == 'fossil':
-                    s += ' --rps-no-renewables'
+                        if rps_level == 'free':
+                            s += ' --rps-deactivate'
+                        elif rps_level == 'fossil':
+                            s += ' --rps-no-renewables'
 
-                if flat == "flat":
-                    s += " --dr-flat-pricing --ev-timing bau"
+                        if flat == "flat":
+                            s += " --dr-flat-pricing --ev-timing bau"
 
-                scenario_list.append(s)
+                        scenario_list.append(s)
 
 # sensitivity cases
 scenario_list.extend([
@@ -217,7 +231,6 @@ args.update(
 )
 
 flat_args = dict(
-    inputs_dir='inputs_2045_current_cost', 
     cap_cost_scen_id='psip_1609_flat',
     fuel_scen_id='flat_2016',
     battery_capital_cost_per_mwh_capacity_by_year=psip_flat_battery_cost_per_mwh,
@@ -225,47 +238,62 @@ flat_args = dict(
 flat_args.update(current_hydrogen_args)
 
 # data definitions for alternative scenarios
-alt_args = [
-    dict(),         # base scenario
-    # dict(inputs_dir='inputs_2045_15_22', time_sample='2045_15_22'),   # short usable scenario
-    # dict(inputs_dir='inputs_tiny', time_sample='tiny_24'),   # tiny version of 2045
-    flat_args,
-    dict(inputs_dir='inputs_ev_full', ev_scenario='Full Adoption'),
-    dict(inputs_dir='inputs_ev_2016', ev_scenario='Flat 2016'),
-    dict(inputs_dir='inputs_2007_loads', load_scen_id='flat_2007'),
+alt_args = []
+for load_scen_id, load_name in [('PSIP_2016_12', '2045_load'), ('flat_2007', '2007_load')]:
+    for ev_name, ev_scenario in [
+        ('half_ev', 'Half Adoption'), ('full_ev', 'Full Adoption'), 
+        ('2016_ev', 'Flat 2016')
+    ]:
+        for price_name, price_args in [
+            ('future_cost', dict()), ('current_cost', flat_args)
+        ]:
+            alt_arg = price_args.copy()
+            alt_arg['load_scen_id'] = load_scen_id
+            alt_arg['ev_scenario'] = ev_scenario
+            alt_arg['inputs_dir'] = '_'.join(['inputs', price_name, load_name, ev_name])
+            alt_args.append(alt_arg)
 
-    # dict(
-    #     inputs_dir='inputs_2007_15', time_sample='2007_15',
-    #     load_scen_id='hist', ev_scenario=None,
-    #     enable_must_run=1, fuel_scen_id='3',
-    #     use_simple_fuel_costs=True
-    # ),         # 2007 scenario
-
-    # make a copy of base data, for use in progressive hedging; 
-    # use the HECO ref forecast as a starting point (it'll get changed later) 
-    # to avoid having two kinds of LNG
-    # dict(inputs_subdir='pha'), #, fuel_scen_id = '3'),
-
-    # dict(inputs_subdir='high_oil_price', fuel_scen_id='EIA_high'),
-    # dict(inputs_subdir='low_oil_price', fuel_scen_id='EIA_low'),
-    # dict(inputs_subdir='lng_oil_peg', fuel_scen_id='EIA_lng_oil_peg'),
-    # dict(inputs_subdir='high_lng_oil_peg', fuel_scen_id='EIA_high_lng_oil_peg'),
-    # dict(inputs_subdir='re_cost_trend',
-    #     wind_capital_cost_escalator=0.011,
-    #     pv_capital_cost_escalator=-0.064),
-    # dict(inputs_subdir='triple_ph',
-    #     pumped_hydro_projects=[
-    #         args["pumped_hydro_projects"][0],   # standard Lake Wilson project
-    #         ['Project_2_(1.2x)', 'Oahu', 1.2*2800*1000+35e6/150, 50, 0.015, 0.77, 0, 100],
-    #         ['Project_3_(1.3x)', 'Oahu', 1.3*2800*1000+35e6/150, 50, 0.015, 0.77, 0, 100],
-    #     ]
-    # ),
-    # dict(
-    #     inputs_subdir='rps_2030',
-    #     time_sample = "rps_fast_mini",
-    #     rps_targets = {2020: 0.4, 2025: 0.7, 2030: 1.0, 2035: 1.0},
-    # ),
-]
+# alt_args = [
+#     dict(),         # base scenario
+#     # dict(inputs_dir='inputs_2045_15_22', time_sample='2045_15_22'),   # short usable scenario
+#     # dict(inputs_dir='inputs_tiny', time_sample='tiny_24'),   # tiny version of 2045
+#     flat_args,
+#     dict(inputs_dir='inputs_ev_full', ev_scenario='Full Adoption'),
+#     dict(inputs_dir='inputs_ev_2016', ev_scenario='Flat 2016'),
+#     dict(inputs_dir='inputs_2007_loads', load_scen_id='flat_2007'),
+#
+#     # dict(
+#     #     inputs_dir='inputs_2007_15', time_sample='2007_15',
+#     #     load_scen_id='hist', ev_scenario=None,
+#     #     enable_must_run=1, fuel_scen_id='3',
+#     #     use_simple_fuel_costs=True
+#     # ),         # 2007 scenario
+#
+#     # make a copy of base data, for use in progressive hedging;
+#     # use the HECO ref forecast as a starting point (it'll get changed later)
+#     # to avoid having two kinds of LNG
+#     # dict(inputs_subdir='pha'), #, fuel_scen_id = '3'),
+#
+#     # dict(inputs_subdir='high_oil_price', fuel_scen_id='EIA_high'),
+#     # dict(inputs_subdir='low_oil_price', fuel_scen_id='EIA_low'),
+#     # dict(inputs_subdir='lng_oil_peg', fuel_scen_id='EIA_lng_oil_peg'),
+#     # dict(inputs_subdir='high_lng_oil_peg', fuel_scen_id='EIA_high_lng_oil_peg'),
+#     # dict(inputs_subdir='re_cost_trend',
+#     #     wind_capital_cost_escalator=0.011,
+#     #     pv_capital_cost_escalator=-0.064),
+#     # dict(inputs_subdir='triple_ph',
+#     #     pumped_hydro_projects=[
+#     #         args["pumped_hydro_projects"][0],   # standard Lake Wilson project
+#     #         ['Project_2_(1.2x)', 'Oahu', 1.2*2800*1000+35e6/150, 50, 0.015, 0.77, 0, 100],
+#     #         ['Project_3_(1.3x)', 'Oahu', 1.3*2800*1000+35e6/150, 50, 0.015, 0.77, 0, 100],
+#     #     ]
+#     # ),
+#     # dict(
+#     #     inputs_subdir='rps_2030',
+#     #     time_sample = "rps_fast_mini",
+#     #     rps_targets = {2020: 0.4, 2025: 0.7, 2030: 1.0, 2035: 1.0},
+#     # ),
+# ]
 
 
 for a in alt_args:
