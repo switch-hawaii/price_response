@@ -31,7 +31,7 @@ import switch_mod.hawaii.scenario_data as scenario_data
 
 load_scenarios = ['2045_load', '2007_load']
 ev_scenarios = ['half_ev', 'full_ev', '2016_ev']
-elasticity_scenarios = [1, 2, 3, 4]
+elasticity_scenarios = [1, 2, 3]
 dynamic_pricing_options = ["flat", "dynamic"]
 price_scenarios = ['future_cost', 'current_cost']
 rps_levels = ['rps', 'free', 'fossil']
@@ -72,12 +72,12 @@ for load_scenario in load_scenarios:
 
                         scenario_list.append(s)
 
-# sensitivity cases
-scenario_list.extend([
-    '--scenario-name rps_future_dynamic_ev_full_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_ev_full',
-    '--scenario-name rps_future_dynamic_ev_2016_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_ev_2016',
-    '--scenario-name rps_future_dynamic_2007_loads_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_2007_loads'
-])
+# # sensitivity cases
+# scenario_list.extend([
+#     '--scenario-name rps_future_dynamic_ev_full_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_ev_full',
+#     '--scenario-name rps_future_dynamic_ev_2016_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_ev_2016',
+#     '--scenario-name rps_future_dynamic_2007_loads_scen3 --dr-elasticity-scenario 3 --inputs-dir inputs_2007_loads'
+# ])
     
 with open('scenarios.txt', 'w') as f:
     f.writelines(s + '\n' for s in scenario_list)
@@ -120,7 +120,7 @@ args = dict(
     exclude_technologies = ('CentralFixedPV',),     
     base_financial_year = 2016,
     interest_rate = 0.06,
-    discount_rate = 0.03,
+    discount_rate = 0.00,
     # used to convert nominal costs in the tables to real costs
     inflation_rate = 0.025,  
 )
