@@ -46,24 +46,20 @@ flexshares <- read.csv(file="flexshares.csv", header=TRUE, sep=",")
 # Highly Inflexible	        0.1	      80%	      88%	      95%
 
 set.scenario <- function(scen) {
-  ifelse(scen==1, {#optimistic
+  if(scen==1) {#optimistic
     shareflex <<- c(0.67, 0.05, 0.28) #sigma level - highly flex, midflex, inflex
-    shareother <<- c(0.15, 0.05, 0.8)},
-    ifelse(scen==2, 
-           {#2nd scenario=baseline/moderate
-             shareflex <<- c(0.33, 0.05, 0.62)
-             shareother <<- c(0.075, 0.05, 0.875)},
-           ifelse(scen==3,
-                  {#3rd scenario=pessimistic
-                    shareflex <<- c(0.15, 0.05, 0.8)
-                    shareother <<- c(0, 0.05, 0.95)},
-                  print("Scenario is not available"))))
+    shareother <<- c(0.15, 0.05, 0.8)
+  } else if(scen==2) {#2nd scenario=baseline/moderate
+    shareflex <<- c(0.33, 0.05, 0.62)
+    shareother <<- c(0.075, 0.05, 0.875)
+  } else if(scen==3) {#3rd scenario=pessimistic
+    shareflex <<- c(0.15, 0.05, 0.8)
+    shareother <<- c(0, 0.05, 0.95)
+  } else {
+    stop("Invalid elasticity scenario selected (must be 1-3)")
+  }
 }
 
-for (i in 1:(ncol(flexshares))){
-  ifelse(i==1, flexsharesall <- data.frame(t(rbind(hour=seq(1,24), rbind(month=rep(i,24),flexshare=flexshares[,i])))), 
-         flexsharesall <- data.frame(rbind(flexsharesall, t(rbind(hour=seq(1,24), rbind(month=rep(i,24),flexshare=flexshares[,i])))))) 
-}
 print("loaded share parameters for each scenario")
 
 #####################################################################
@@ -91,7 +87,6 @@ demandbygroupf <- function(xb, pd, pb, sigmath, month, scen) {
   loadshare<- xb*(flexload+otherload)
   #set parameters
   p             <- pd/pb
-  alpha         <- alphamonthly[month]
   Mb            <- sum(pb*loadshare)/(1-alpha)
   beta          <- betaflexf(xb, sigmath, month, scen)
   sigma         <- sigmap[sigmath]
@@ -128,15 +123,14 @@ wtpbygroupf <- function(xd, xb, pd, pb, sigmath, month, scen) {
   loadshare<- xb*(flexload+otherload)
   #set parameters
   p             <- pd/pb
-  alpha         <- alphamonthly[month]
   Mb            <- sum(pb*loadshare)/(1-alpha)
   beta          <- betaflexf(xb, sigmath, month, scen)
   sigma         <- sigmap[sigmath]
   #expressions to construct function
   exp1 <- (1-theta)/(1-sigma)
-  exp2 <- (sigma-theta)/(1-sigma)
+  exp2 <- 1/(1-theta)
   exp3 <- sum(beta*(p^(1-sigma)))
-  e   <- ((alpha+(1-alpha)*(exp3^(exp1)))^(-1))
+  e <- ((alpha+(1-alpha)*(exp3^(exp1)))^exp2)
   cs  <- Mb/e
   cost <- sum(pd*xd)
   return(cs+cost)
@@ -152,15 +146,14 @@ csbygroupf <- function(xd, xb, pd, pb, sigmath, month, scen) {
   loadshare<- xb*(flexload+otherload)
   #set parameters
   p             <- pd/pb
-  alpha         <- alphamonthly[month]
   Mb            <- sum(pb*loadshare)/(1-alpha)
   beta          <- betaflexf(xb, sigmath, month, scen)
   sigma         <- sigmap[sigmath]
   #expressions to construct function
   exp1 <- (1-theta)/(1-sigma)
-  exp2 <- (sigma-theta)/(1-sigma)
+  exp2 <- 1/(1-theta)
   exp3 <- sum(beta*(p^(1-sigma)))
-  e   <- ((alpha+(1-alpha)*(exp3^(exp1)))^(-1))
+  e <- ((alpha+(1-alpha)*(exp3^(exp1)))^exp2)
   cs  <- Mb/e
   return(cs)
 }
@@ -197,6 +190,7 @@ bid <- function(location, timeseries, prices, pup, pdown, scenario) {
   prices[prices < 1] <- 1
   b.loads = base.loads[,timeseries,location]
   b.prices = base.prices[,timeseries,location] 
+
 
   # M.F. disabled new budget calculation 2016-12-16 because it seems like
   # budget should be based on baseline conditions (in which customers cannot
@@ -282,6 +276,9 @@ bid <- function(location, timeseries, prices, pup, pdown, scenario) {
   return (list(demand, demandup, demanddown, wtp, cshighflex, csmidflex, csinflex))
 }
 
+get_extra_column_names <- function(){
+  return(list("cshighflex", "csmidflex", "csinflex"))
+}
 
 makearray <- function() {
 	array(0:31, dim=c(3,2,2,2), dimnames=list(c(12, 13, 14), c("prices", "demand"), c("oahu","maui"), c(1, 2)))
