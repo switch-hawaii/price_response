@@ -13,4 +13,5 @@ hawaii.batteries_fixed_calendar_life
 hawaii.reserves
 hawaii.demand_response
 hawaii.r_demand_system
+hawaii.smooth_dispatch
 hawaii.save_results
