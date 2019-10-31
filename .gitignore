@@ -1,9 +1,7 @@
 Icon?
+old*/
 outputs*/
 scenario_queue*/
-switch_mod
-switch_hawaii
-switch
 clone1.log
 cplex.log
 parse_table_datacmds.py
@@ -14,3 +12,13 @@ parse_table_datacmds.py
 ~$*
 im
 inputs_2045_15_2*/
+*_old/
+LatexFiles/
+Presentations/
+references/
+regulatoryIdeas/
+switch/
+valueRTPv4Figures/
+data_sources/
+HPC backup/
+__pycache__

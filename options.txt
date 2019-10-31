@@ -1,16 +1,29 @@
---verbose 
+--verbose
 --stream-solver
 --sorted-output
---max-iter=100
-#--solver=cplexamp --solver-options-string="timelimit=1200 display=1 mipdisplay=2 mipgap=0.0001 threads=1"
---solver=cplex --solver-options-string="timelimit=1200 mip_display=0 mip_tolerances_mipgap=0.0001 mip_strategy_file=3"
-#--solver=cplex --solver-options-string="timelimit=1200 mip_display=2 mip_tolerances_mipgap=0.0001 threads=1"
+--max-iter 100
+#--solver cplexamp --solver-options-string "timelimit=1200 display=1 mipdisplay=2 mipgap=0.0001 threads=1"
+# TODO: try mip_emphasis=4 instead of default; it may get closer to optimality faster
+--solver cplex --solver-options-string "timelimit=1200 mip_display=2 mip_tolerances_mipgap=0.0001 mip_strategy_file=3"
+--retrieve-cplex-mip-duals
+#--solver cplex --solver-options-string "timelimit=1200 mip_display=2 mip_tolerances_mipgap=0.0001 threads=1"
 #--suffixes iis
---inputs-dir inputs_2045_15
---outputs-dir outputs
---scenario-name test
---dr-demand-module switch_mod.hawaii.r_demand_system
+--dr-demand-module switch_model.balancing.demand_response.iterative.r_demand_system
 --dr-r-script nestedcespy.R
 --dr-elasticity-scenario 3
---biofuel-limit 1.0
 #--debug
+
+# use Hawaii reserve rules
+--spinning-requirement-rule Hawaii
+
+# We don't specify reserve types for generators, hydrogen, ev or dr, because
+# they all default to "spinning", which is fine.
+
+# fixed reserve margin (about 8% faster than unit-level contingencies)
+# --fixed-contingency 180
+
+# use unit-level n-1 contingency reserve
+--unit-contingency
+
+# don't allow LNG transition, since that's not currently on the table
+--force-lng-tier none

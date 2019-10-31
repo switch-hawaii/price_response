@@ -1,17 +1,29 @@
-switch_mod 
-fuel_markets
-project.unitcommit
-project.unitcommit.discrete
-hawaii.switch_patch
-hawaii.fuel_markets_expansion
-hawaii.lng_conversion
-hawaii.ev
-hawaii.rps
-hawaii.kalaeloa
-hawaii.hydrogen
-hawaii.batteries_fixed_calendar_life
-hawaii.reserves
-hawaii.demand_response
-hawaii.r_demand_system
-hawaii.smooth_dispatch
-hawaii.save_results
+switch_model.timescales
+switch_model.financials
+switch_model.balancing.load_zones
+switch_model.energy_sources.properties
+switch_model.generators.core.build
+switch_model.generators.core.dispatch
+switch_model.energy_sources.fuel_costs.markets
+switch_model.generators.core.gen_discrete_build
+switch_model.generators.core.commit.operate
+switch_model.generators.core.commit.fuel_use
+switch_model.generators.core.commit.discrete
+switch_model.generators.extensions.storage
+switch_model.balancing.operating_reserves.areas
+switch_model.balancing.operating_reserves.spinning_reserves_advanced
+# note: smooth_dispatch should be loaded before any modules that do reporting,
+# including the demand_response system
+switch_model.hawaii.smooth_dispatch
+switch_model.balancing.demand_response.iterative
+switch_model.balancing.demand_response.iterative.r_demand_system
+switch_model.hawaii.switch_patch
+switch_model.hawaii.fuel_markets_expansion
+switch_model.hawaii.rps
+switch_model.hawaii.lng_conversion
+switch_model.hawaii.ev
+# note: kalaeloa depends on rps and ev
+switch_model.hawaii.kalaeloa
+switch_model.hawaii.hydrogen
+# switch_model.hawaii.fed_subsidies
+switch_model.reporting
