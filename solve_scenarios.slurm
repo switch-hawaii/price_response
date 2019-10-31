@@ -12,10 +12,10 @@
 
 #SBATCH --job-name=demand_scenarios
 #SBATCH --partition=community.q
-#SBATCH --time=1-00:00:00
+#SBATCH --time=3-00:00:00
 # specify the number of parallel tasks to run in the commmand below
 #SBATCH --array=1-40
 
 module load lang/Python/2.7.10/python
-srun --unbuffered switch solve-scenarios --scenario-queue sq/sq_$SLURM_ARRAY_JOB_ID "$@"
+srun --unbuffered --time=3-00:00:00 --partition=community.q switch solve-scenarios --scenario-queue sq/sq_$SLURM_ARRAY_JOB_ID "$@"
 

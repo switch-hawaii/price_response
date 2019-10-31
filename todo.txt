@@ -9,6 +9,5 @@ xx fix EV bug with 'ice_fuel_cost' depending on 'rfm_supply_tier_cost'
 diagnose scaled infeasibility problem (seems to still happen without integer variables or bulk LNG choice)
 - maybe with ./solve_scenarios --scenario 2045_fossil_dynamic_scen3 --keepfiles --tempdir /tmp/pyomo --symbolic-solver-labels
 
-finish data-picker Excel macro
 
-prepare charts and data for NBER
+finish data-picker Excel macro
