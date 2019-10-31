@@ -11,11 +11,12 @@
 #SBATCH --mem-per-cpu=6400
 
 #SBATCH --job-name=demand_scenarios
-#SBATCH --partition=community.q
+#SBATCH --partition=kill-shared
 #SBATCH --time=3-00:00:00
 # specify the number of parallel tasks to run in the commmand below
 #SBATCH --array=1-40
 
-module load lang/Python/2.7.10/python
-srun --unbuffered --time=3-00:00:00 --partition=community.q switch solve-scenarios --scenario-queue sq/sq_$SLURM_ARRAY_JOB_ID "$@"
+module load lang/Anaconda3
+source activate switch
+srun --unbuffered switch solve-scenarios --scenario-queue sq/$SLURM_ARRAY_JOB_ID "$@"
 
