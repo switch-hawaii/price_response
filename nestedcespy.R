@@ -20,6 +20,7 @@ alpha <- c(0.9718)
 # 2. elasticity of substitution between electricity and other goods
 # following Gowrisankaran et al 2016
 theta <- c(0.1)
+#theta <- 2
 
 print(sprintf('using alpha=%f, theta=%f', alpha, theta))
 
