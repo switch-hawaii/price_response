@@ -84,6 +84,9 @@ for load_scenario, load_scen_id in load_scenarios:
 
                             if flat == "flat":
                                 s += " --dr-flat-pricing --ev-timing bau"
+                            else:
+                                s += " --ev-timing optimal"
+
 
                             scenario_list.append((s, data_tags))
 
@@ -92,7 +95,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--skip-cf', action='store_true', default=False,
     help='Skip writing variable capacity factors file (for faster execution)')
 # use k_means set with 12 days plus an extra "tough" day, 1-hour spacing
-parser.add_argument('--time-sample', default="k_means_2045_12+")
+parser.add_argument('--time-sample', default="k_means_daily_2045_12+")
 parser.add_argument('--inputs-dir', default='inputs')
 
 cmd_line_args = parser.parse_args()
@@ -219,7 +222,7 @@ args.update(
 args['rps_targets'] = {2015: 0.15, 2020: 0.30, 2030: 0.40, 2040: 0.70, 2045: 1.00}
 
 flat_args = dict(
-    tech_scen_id='ATB_2018_flat',
+    tech_scen_id='ATB_2019_flat',
     fuel_scen_id='flat_2016',
 )
 flat_args.update(current_hydrogen_args)
