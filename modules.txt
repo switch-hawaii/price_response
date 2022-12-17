@@ -26,4 +26,7 @@ switch_model.hawaii.ev
 switch_model.hawaii.kalaeloa
 switch_model.hawaii.hydrogen
 # switch_model.hawaii.fed_subsidies
+# we don't need switch_model.reporting but we have to include it because
+# it defines --sorted-output which is used by 
+# switch_model.generators.core.build.post_solve as of Switch 2.0.6
 switch_model.reporting
