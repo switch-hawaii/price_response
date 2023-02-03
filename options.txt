@@ -4,33 +4,32 @@
 #--max-iter 100
 #--solver cplexamp --solver-options-string "timelimit=1200 display=1 mipdisplay=2 mipgap=0.0001 threads=1"
 #--solver cplex --solver-options-string "timelimit=1200 mip_display=1 mip_tolerances_mipgap=0.0001 mip_strategy_file=3 threads=1"
-# Beginning 7/19/21, we set the iteration and time limits higher (5000 > 100 iters, 21600 > 1200 secs), 
-# and we use a mip gap equal to 0.001 * baseline expenditure instead of 0.0001 * objective function; 
+# Beginning 7/19/21, we set the iteration and time limits higher (5000 > 100 iters, 21600 > 1200 secs),
+# and we use a mip gap equal to 0.001 * baseline expenditure instead of 0.0001 * objective function;
 # These should solve some previous failures, where no integer solution was found in the first 1200 s
 # or where scenarios were still far from the right solution after 100 iterations or where individual iterations
 # take more than 6 hours to close the optimality gap (with .0001 * baseline). It should also line up consistently
-# with the demand response iteration, which stops when dr optimality gap reaches 0.001 * baseline expenditure. 
-# It also avoids using an artificially tight gap for cplex when the objective function (direct cost minus benefits) 
+# with the demand response iteration, which stops when dr optimality gap reaches 0.001 * baseline expenditure.
+# It also avoids using an artificially tight gap for cplex when the objective function (direct cost minus benefits)
 # happens to be near zero.
 # Beginning 7/19/21, we also set "mip tolerances integrality" to 1e-9 to avoid cases where the model gets a nearly integral
 # solution in the MIP stage, then declares this infeasible in the dual-finding stage.
-# Beginning 7/27/21, we used absmipgap = 13,000,000 (0.01*baseline) because the current cost - dynamic price scenarios were still 
+# Beginning 7/27/21, we used absmipgap = 13,000,000 (0.01*baseline) because the current cost - dynamic price scenarios were still
 # taking 6 hours+ to close the gap so we can't expect to converge in reasonable time. We also raised the time limit per
 # solution to 12 hours, so we can get a better picture of how long the solutions are taking to solve ("solutions"
 # driven by the time limit may not be much use if they are much larger than the gap we want to apply).
-# Experiments with the base case showed that 0.01*baseline expenditure produces virtually identical convergence 
-# progress to 0.001 or 0.0001, at least for the first few rounds, and move faster. Those tests also 
-# showed that 0.1*baseline converges similarly (!) but doesn't save much time vs. 0.01*baseline. If 
+# Experiments with the base case showed that 0.01*baseline expenditure produces virtually identical convergence
+# progress to 0.001 or 0.0001, at least for the first few rounds, and move faster. Those tests also
+# showed that 0.1*baseline converges similarly (!) but doesn't save much time vs. 0.01*baseline. If
 # needed, we may re-run the last, slow scenarios with 0.001*baseline to polish the convergence after this.
 # Previous steps did not do much to get good solutions quickly.
 # Beginning 7/30/21, we used absmipgap = 13,000,000 (0.01*baseline) and model optimality gap = 0.01
-# and --rps-allocation relaxed_split_commit and pre-seeded bids because it looks like this combination will give 
+# and --rps-allocation relaxed_split_commit and pre-seeded bids because it looks like this combination will give
 # reasonably fast solutions and convergence, and still be tight enough for the paper.
 # Note: we've experimented with RINS, cuts all 2, mip emphasis 1-4, mip order files, etc., but none of them
 # speed up the solution significantly.
 --max-iter 5000
 --solver cplex --solver-options-string "timelimit=43200 mip_display=2 mip_tolerances_absmipgap=13000000 mip_tolerances_mipgap=0 mip_tolerances_integrality=1e-9 mip_strategy_file=3 workdir=tmp threads=1"
---tempdir tmp
 --retrieve-cplex-mip-duals
 #--solver cplex --solver-options-string "timelimit=1200 mip_display=2 mip_tolerances_mipgap=0.0001 threads=1"
 #--suffixes iis

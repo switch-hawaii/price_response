@@ -21,6 +21,11 @@
 scen_name=$(awk -v line="${SLURM_ARRAY_TASK_ID}" -v field="2" 'NR==line{print $field}' scenarios_2018_04_29_theta01.txt)
 echo "Solving scenario $scen_name."
 
+# Note: we use --tempdir tmp to ensure that temporary files are created in the
+# file system, not in the system temporary dir, because on the UH HPC system,
+# the system temporary dir is a ramdisk and storing intermediate files there can
+# cause an out-of-memory error while solving.
+
 module load lang/Python/2.7.10/python
-srun --unbuffered --time=3-00:00:00 --partition=community.q switch solve-scenarios --scenario $scen_name --scenario-queue sq/sq_$SLURM_ARRAY_JOB_ID "$@"
+srun --unbuffered --time=3-00:00:00 --partition=community.q switch solve-scenarios --scenario $scen_name --scenario-queue sq/sq_$SLURM_ARRAY_JOB_ID "$@" --tempdir ./tmp
 
